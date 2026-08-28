@@ -86,7 +86,7 @@ The screenshots were taken against a stub router: every value on them is made up
 - message text, log entries and readings can be selected and copied, while the blinking caret appears only in input fields;
 - **About**: version, author, license, links to the source code, privacy policy and issues, plus the full liability warning;
 - a one-time risk acknowledgement on first launch: until it is accepted, sign-in stays closed;
-- Russian and English interface, light and dark theme.
+- language and theme switches right in the header: language follows the browser or is set to Russian or English; theme follows the system or is set to light or dark. The choice is remembered and the hover label names the current and the next state; on narrow screens both buttons move to the top of the drawer menu.
 
 ## Wi-Fi: one band at a time
 

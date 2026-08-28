@@ -1897,7 +1897,7 @@ await test("разовое согласие с риском закрывает �
   // До согласия кнопка входа заблокирована, после — отметка сохраняется.
   assert.ok(/async function ensureRiskAccepted\(\)[\s\S]{0,200}chrome\.storage\.local\.get\(\{ riskAccepted: false \}\)/.test(js));
   assert.ok(/dom\.signInButton\.disabled = true;[\s\S]{0,600}dom\.signInButton\.disabled = false;[\s\S]{0,120}chrome\.storage\.local\.set\(\{ riskAccepted: true \}\)/.test(js));
-  assert.ok(/await restoreSettings\(\);\s*await ensureRiskAccepted\(\);/.test(js), "согласие спрашивается при запуске");
+  assert.ok(/async function initialize\(\)[\s\S]{0,1200}await ensureRiskAccepted\(\);/.test(js), "согласие спрашивается при запуске");
 });
 
 // Раздел «О расширении» повторяет состав такого же раздела в EE71 Monitor:
@@ -2003,6 +2003,53 @@ await test("снимки в описании на месте", () => {
       assert.ok(statSync(join(projectRoot, link)).size > 0, `${link} существует`);
     });
   });
+});
+
+// Язык и тема выбираются кнопками-циклами в шапке: списка состояний у такой
+// кнопки не видно, поэтому подпись при наведении называет текущее и следующее.
+await test("язык и тема переключаются в шапке", () => {
+  const html = readFileSync(join(projectRoot, "extension", "panel.html"), "utf8");
+  const js = readFileSync(join(projectRoot, "extension", "panel.js"), "utf8");
+  const css = readFileSync(join(projectRoot, "extension", "panel.css"), "utf8");
+  const i18n = readFileSync(join(projectRoot, "extension", "i18n.js"), "utf8");
+
+  assert.ok(html.includes('id="languageToggle"') && html.includes('id="themeToggle"'));
+  // Значки темы описаны шаблоном и подставляются кодом, а не скопированы.
+  assert.equal((html.match(/<template id="themeIconsTemplate">/g) || []).length, 1);
+  assert.equal((html.match(/class="theme-icon /g) || []).length, 3, "три значка: система, светлая, тёмная");
+  assert.ok(/dom\.themeToggle\.appendChild\(byId\("themeIconsTemplate"\)/.test(js));
+
+  // Три положения по кругу у обоих переключателей.
+  assert.ok(/LANGUAGE_ORDER = Object\.freeze\(\["auto", "ru", "en"\]\)/.test(js));
+  assert.ok(/THEME_ORDER = Object\.freeze\(\["auto", "light", "dark"\]\)/.test(js));
+  assert.ok(/order\[\(order\.indexOf\(current\) \+ 1\) % order\.length\]/.test(js), "после последнего идёт первое");
+
+  // Подпись и имя для чтения с экрана называют текущее состояние и следующее.
+  assert.ok(/function describeToggle[\s\S]{0,320}button\.title = text;[\s\S]{0,80}setAttribute\("aria-label", text\)/.test(js));
+  assert.ok(/languageToggleTitle: "[^"]*\{current\}[^"]*\{next\}/.test(i18n));
+  assert.ok(/themeToggleTitle: "[^"]*\{current\}[^"]*\{next\}/.test(i18n));
+
+  // Выбор запоминается, «как в системе» снимает атрибут темы.
+  assert.ok(/chrome\.storage\.local\.set\(\{ languagePreference \}\)/.test(js));
+  assert.ok(/chrome\.storage\.local\.set\(\{ themePreference \}\)/.test(js));
+  assert.ok(/if \(themePreference === "auto"\) \{\s*delete document\.documentElement\.dataset\.theme;/.test(js));
+
+  // Смена языка разбирается с несохранённым и перечитывает открытый раздел.
+  assert.ok(/async function switchLanguage\(\)[\s\S]{0,200}await leaveActiveTab\(\)/.test(js));
+  assert.ok(/async function switchLanguage\(\)[\s\S]{0,400}refreshLocalizedUi\(\)[\s\S]{0,200}loadTabData\(activeTab\)/.test(js));
+  // Подсказки и списки собраны кодом, поэтому переводятся отдельно.
+  assert.ok(/function refreshLocalizedUi[\s\S]{0,600}hint__bubble[\s\S]{0,120}t\(holder\.dataset\.hint\)/.test(js));
+
+  // На узком экране кнопки уезжают в меню, но только когда меню доступно.
+  assert.ok(/const inMenu = narrow && !dom\.panelLayout\.hidden/.test(js));
+  assert.ok(/dom\.tabsNav\.prepend\(dom\.appbarSwitches\)/.test(js));
+  assert.equal((html.match(/id="appbarSwitches"/g) || []).length, 1, "узел один, копии разметки нет");
+
+  // Тёмная палитра описана один раз и подключается двумя путями.
+  assert.equal((css.match(/--dark-page: #/g) || []).length, 1, "значения тёмной темы не продублированы");
+  assert.ok(/@media \(prefers-color-scheme: dark\) \{\s*:root:not\(\[data-theme="light"\]\) \{[\s\S]{0,600}--page: var\(--dark-page\)/.test(css));
+  assert.ok(/:root\[data-theme="dark"\] \{[\s\S]{0,600}--page: var\(--dark-page\)/.test(css));
+  assert.ok(/:root\[data-theme="light"\] \{ color-scheme: light; \}/.test(css));
 });
 
 await test("версии в манифесте и сборке согласованы", () => {

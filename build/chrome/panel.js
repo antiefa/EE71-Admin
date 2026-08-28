@@ -177,7 +177,12 @@
   const AUTO_REFRESH_INTERVALS = Object.freeze([0, 5, 10, 30, 60]);
   const DEFAULT_AUTO_REFRESH = 10;
 
-  const locale = resolveLocale("auto");
+  // Язык и тема выбираются в шапке; «auto» означает «как в браузере и системе».
+  const LANGUAGE_ORDER = Object.freeze(["auto", "ru", "en"]);
+  const THEME_ORDER = Object.freeze(["auto", "light", "dark"]);
+  let languagePreference = "auto";
+  let themePreference = "auto";
+  let locale = resolveLocale("auto");
   const client = new RouterClient();
   const dom = {};
   let lanSettings = null;
@@ -280,7 +285,8 @@
       "appLoader", "menuButton", "menuScrim", "menuClose", "tabsNav",
       "confirmDialog", "confirmTitle", "confirmBody", "confirmExtra", "confirmExtraTitle",
       "confirmList", "confirmCancel", "confirmApply", "confirmDiscard",
-      "consentDialog", "consentAccept", "aboutVersion"
+      "consentDialog", "consentAccept", "aboutVersion",
+      "appbarSwitches", "languageToggle", "languageLabel", "themeToggle"
     ].forEach((id) => {
       dom[id] = byId(id);
     });
@@ -320,6 +326,92 @@
     });
   }
 
+  function nextInCycle(order, current) {
+    return order[(order.indexOf(current) + 1) % order.length];
+  }
+
+  const LANGUAGE_NAMES = Object.freeze({ auto: "languageAuto", ru: "languageRu", en: "languageEn" });
+  const LANGUAGE_BADGES = Object.freeze({ auto: "languageBadgeAuto", ru: "languageBadgeRu", en: "languageBadgeEn" });
+  const THEME_NAMES = Object.freeze({ auto: "themeAuto", light: "themeLight", dark: "themeDark" });
+
+  // Кнопка-цикл не показывает список состояний, поэтому подпись при наведении
+  // называет текущее и следующее — она же служит именем для чтения с экрана.
+  function describeToggle(button, titleKey, names, current, order) {
+    const text = t(titleKey, { current: t(names[current]), next: t(names[nextInCycle(order, current)]) });
+    button.title = text;
+    button.setAttribute("aria-label", text);
+  }
+
+  function applyLanguageToggle() {
+    dom.languageLabel.textContent = t(LANGUAGE_BADGES[languagePreference]);
+    describeToggle(dom.languageToggle, "languageToggleTitle", LANGUAGE_NAMES, languagePreference, LANGUAGE_ORDER);
+  }
+
+  function applyThemeToggle() {
+    // «Как в системе» снимает атрибут, и палитру снова выбирает браузер.
+    if (themePreference === "auto") {
+      delete document.documentElement.dataset.theme;
+    } else {
+      document.documentElement.dataset.theme = themePreference;
+    }
+    dom.themeToggle.querySelectorAll(".theme-icon").forEach((icon) => {
+      icon.toggleAttribute("hidden", !icon.classList.contains(`theme-icon--${themePreference}`));
+    });
+    describeToggle(dom.themeToggle, "themeToggleTitle", THEME_NAMES, themePreference, THEME_ORDER);
+  }
+
+  // Подписи, собранные кодом, переводятся не разметкой, поэтому обновляются здесь.
+  function refreshLocalizedUi() {
+    applyTranslations();
+    fillAutoRefreshOptions();
+    buildWifiOptions();
+    buildMobileOptions();
+    document.querySelectorAll("[data-hint]").forEach((holder) => {
+      const bubble = holder.querySelector(".hint__bubble");
+      if (bubble) {
+        bubble.textContent = t(holder.dataset.hint);
+      }
+      const button = holder.querySelector(".hint__button");
+      if (button) {
+        button.title = t("hintOpen");
+        button.setAttribute("aria-label", t("hintOpen"));
+      }
+    });
+  }
+
+  async function switchLanguage() {
+    // Смена языка перечитывает раздел, поэтому несохранённое сперва разбирается.
+    if (!(await leaveActiveTab())) {
+      return;
+    }
+    languagePreference = nextInCycle(LANGUAGE_ORDER, languagePreference);
+    locale = resolveLocale(languagePreference);
+    refreshLocalizedUi();
+    await chrome.storage.local.set({ languagePreference });
+    if (client.isAuthenticated) {
+      loadTabData(activeTab).catch(() => undefined);
+    }
+  }
+
+  async function switchTheme() {
+    themePreference = nextInCycle(THEME_ORDER, themePreference);
+    applyThemeToggle();
+    await chrome.storage.local.set({ themePreference });
+  }
+
+  // На узком экране кнопки уезжают в начало выдвижного меню, но до входа меню
+  // недоступно, поэтому там они остаются в шапке. Узел один, копий разметки нет.
+  function placeSwitches() {
+    const narrow = window.matchMedia("(max-width: 720px)").matches;
+    const inMenu = narrow && !dom.panelLayout.hidden;
+    dom.appbarSwitches.classList.toggle("appbar__switches--in-menu", inMenu);
+    if (inMenu) {
+      dom.tabsNav.prepend(dom.appbarSwitches);
+    } else {
+      dom.routerStatus.before(dom.appbarSwitches);
+    }
+  }
+
   function applyTranslations() {
     document.documentElement.lang = locale;
     document.title = t("appName");
@@ -342,6 +434,8 @@
     // и именем кнопки, иначе значок ничего не сообщает.
     dom.menuButton.title = t("menuSections");
     dom.menuButton.setAttribute("aria-label", t("menuSections"));
+    applyLanguageToggle();
+    applyThemeToggle();
     dom.menuClose.title = t("menuClose");
     dom.menuClose.setAttribute("aria-label", t("menuClose"));
   }
@@ -365,6 +459,8 @@
     dom.lockButtons.forEach((button) => {
       button.appendChild(lockIcon.content.cloneNode(true));
     });
+
+    dom.themeToggle.appendChild(byId("themeIconsTemplate").content.cloneNode(true));
   }
 
   // Счётчик на вкладке переключателя одинаков для всех его вкладок, поэтому
@@ -513,6 +609,7 @@
   function setAuthenticatedUi(authenticated) {
     dom.authScreen.hidden = authenticated;
     dom.panelLayout.hidden = !authenticated;
+    placeSwitches();
     dom.sessionSummary.hidden = !authenticated;
     // До входа разделов нет, поэтому кнопка меню не показывается.
     dom.menuButton.hidden = !authenticated;
@@ -5045,10 +5142,15 @@
     const stored = await chrome.storage.local.get({
       routerAddress: DEFAULT_SETTINGS.routerAddress,
       userName: DEFAULT_SETTINGS.userName,
-      autoRefreshSeconds: DEFAULT_AUTO_REFRESH
+      autoRefreshSeconds: DEFAULT_AUTO_REFRESH,
+      languagePreference: "auto",
+      themePreference: "auto"
     });
     dom.routerAddress.value = stored.routerAddress;
     dom.routerUser.value = stored.userName;
+    languagePreference = LANGUAGE_ORDER.includes(stored.languagePreference) ? stored.languagePreference : "auto";
+    themePreference = THEME_ORDER.includes(stored.themePreference) ? stored.themePreference : "auto";
+    locale = resolveLocale(languagePreference);
     autoRefreshSeconds = AUTO_REFRESH_INTERVALS.includes(stored.autoRefreshSeconds)
       ? stored.autoRefreshSeconds
       : DEFAULT_AUTO_REFRESH;
@@ -5070,6 +5172,14 @@
           .catch(() => undefined);
       });
     });
+    dom.languageToggle.addEventListener("click", () => {
+      switchLanguage().catch(() => undefined);
+    });
+    dom.themeToggle.addEventListener("click", () => {
+      switchTheme().catch(() => undefined);
+    });
+    window.matchMedia("(max-width: 720px)").addEventListener("change", () => placeSwitches());
+
     dom.signInForm.addEventListener("submit", handleSignIn);
     dom.signOutButton.addEventListener("click", () => {
       leaveActiveTab()
@@ -5420,21 +5530,22 @@
 
   async function initialize() {
     cacheDom();
-    applyTranslations();
-    fillAboutVersion();
     buildIconButtons();
     buildSegmentedBadges();
     buildUsageDonuts();
     buildWifiOptions();
     buildMobileOptions();
     buildHints();
+    await restoreSettings();
+    refreshLocalizedUi();
+    fillAboutVersion();
     bindEvents();
     setPasswordVisible(false);
     lockAllProtectedFields();
     setAuthenticatedUi(false);
     renderOverview(null);
     renderDiagnostics(null);
-    await restoreSettings();
+    placeSwitches();
     await ensureRiskAccepted();
 
     // До входа доступно только чтение состояния, и лишь если разрешение уже выдано.

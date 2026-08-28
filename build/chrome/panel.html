@@ -28,6 +28,13 @@
         <strong data-i18n="appName">EE71 Панель</strong>
         <span class="appbar__meta" data-i18n="appTagline">Управление роутером Alcatel EE71</span>
       </span>
+      <span class="appbar__switches" id="appbarSwitches">
+        <button class="icon-toggle" id="languageToggle" type="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M3 12h18"></path><path d="M12 3a14 14 0 0 1 0 18a14 14 0 0 1 0-18z"></path></svg>
+          <span class="icon-toggle__label" id="languageLabel">А</span>
+        </button>
+        <button class="icon-toggle" id="themeToggle" type="button"></button>
+      </span>
       <span id="routerStatus" class="router-status">
         <span class="router-status__dot"></span>
         <span id="routerStatusText" data-i18n="statusOffline">Нет связи</span>
@@ -2151,6 +2158,12 @@
       <span class="operator-row__state"></span>
       <button class="secondary-button operator-row__action" type="button"></button>
     </div>
+  </template>
+
+  <template id="themeIconsTemplate">
+    <svg class="theme-icon theme-icon--auto" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="12" rx="2"></rect><path d="M8 20h8"></path><path d="M12 16v4"></path></svg>
+    <svg class="theme-icon theme-icon--light" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" hidden><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg>
+    <svg class="theme-icon theme-icon--dark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" hidden><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"></path></svg>
   </template>
 
   <template id="revealIconsTemplate">

@@ -24,22 +24,58 @@
   font-family: Roboto, Arial, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
+/* Тёмная палитра описана один раз и подключается двумя путями: системной
+   настройкой браузера и выбором пользователя в шапке. */
+:root {
+  --dark-page: #151816;
+  --dark-surface: #1e2220;
+  --dark-surface-muted: #252a27;
+  --dark-line: #414743;
+  --dark-line-soft: #343a36;
+  --dark-text: #f0f3f1;
+  --dark-muted: #a4aaa6;
+  --dark-accent: #43b97b;
+  --dark-accent-soft: #213c2d;
+  --dark-danger: #ff8277;
+  --dark-warning: #f2b45d;
+  --dark-shadow: rgba(0, 0, 0, .26);
+}
+
 @media (prefers-color-scheme: dark) {
-  :root {
-    --page: #151816;
-    --surface: #1e2220;
-    --surface-muted: #252a27;
-    --line: #414743;
-    --line-soft: #343a36;
-    --text: #f0f3f1;
-    --muted: #a4aaa6;
-    --accent: #43b97b;
-    --accent-soft: #213c2d;
-    --danger: #ff8277;
-    --warning: #f2b45d;
-    --shadow: rgba(0, 0, 0, .26);
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --page: var(--dark-page);
+    --surface: var(--dark-surface);
+    --surface-muted: var(--dark-surface-muted);
+    --line: var(--dark-line);
+    --line-soft: var(--dark-line-soft);
+    --text: var(--dark-text);
+    --muted: var(--dark-muted);
+    --accent: var(--dark-accent);
+    --accent-soft: var(--dark-accent-soft);
+    --danger: var(--dark-danger);
+    --warning: var(--dark-warning);
+    --shadow: var(--dark-shadow);
   }
 }
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --page: var(--dark-page);
+  --surface: var(--dark-surface);
+  --surface-muted: var(--dark-surface-muted);
+  --line: var(--dark-line);
+  --line-soft: var(--dark-line-soft);
+  --text: var(--dark-text);
+  --muted: var(--dark-muted);
+  --accent: var(--dark-accent);
+  --accent-soft: var(--dark-accent-soft);
+  --danger: var(--dark-danger);
+  --warning: var(--dark-warning);
+  --shadow: var(--dark-shadow);
+}
+
+:root[data-theme="light"] { color-scheme: light; }
 
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
@@ -80,6 +116,14 @@ button, input, select, textarea { font: inherit; }
 .appbar__icon svg { width: 22px; height: 22px; }
 .appbar__brand { margin-left: 11px; }
 .appbar__brand strong { display: block; font-size: 16px; line-height: 1.2; }
+.appbar__switches { display: flex; gap: 6px; margin-left: 14px; }
+.icon-toggle { min-width: 38px; height: 38px; padding: 0 8px; display: inline-flex; align-items: center; justify-content: center; gap: 5px; border: 1px solid var(--line); border-radius: 8px; color: var(--text); background: var(--surface); cursor: pointer; }
+.icon-toggle:hover { border-color: var(--accent); color: var(--accent); }
+.icon-toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.icon-toggle svg { width: 18px; height: 18px; flex: 0 0 auto; }
+.icon-toggle__label { font-size: 11px; font-weight: 650; letter-spacing: .03em; }
+.appbar__switches--in-menu { margin: 0 0 14px; }
+.appbar__switches--in-menu .icon-toggle { flex: 1 1 0; }
 .appbar__meta { display: block; margin-top: 2px; color: var(--muted); font-size: 12px; }
 
 .router-status { margin-left: auto; display: flex; align-items: center; gap: 7px; color: var(--muted); font-size: 13px; font-weight: 550; }
