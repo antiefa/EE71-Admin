@@ -158,7 +158,7 @@ done
 node tests/common.test.js
 ```
 
-82 checks: address parsing, sign-in cryptography (compared against the firmware's own algorithm), validation of network and Wi-Fi settings, request construction, message rules (encoding, length, slots, folder mapping), perimeter rules (port forwarding, DMZ, remote access), firmware update states, WPS restrictions, backup parsing (IMEI-derived password, OpenSSL container, the archive inside), and interface requirements — reuse of shared elements, block spacing, copyright headers and the visibility of the liability warning.
+85 checks: address parsing, sign-in cryptography (compared against the firmware's own algorithm), validation of network and Wi-Fi settings, request construction, message rules (encoding, length, slots, folder mapping), perimeter rules (port forwarding, DMZ, remote access), firmware update states, WPS restrictions, backup parsing (IMEI-derived password, OpenSSL container, the archive inside), data volumes shown in the interface language, and interface requirements — reuse of shared elements, block spacing, copyright headers, the visibility of the liability warning, the behaviour of the language and theme switches, and the presence of the screenshots this README links to.
 
 Part of the feature set was derived from the firmware and has not been exercised on a live router. If the router rejects something, please report it in [issues](https://github.com/antiefa/EE71-Admin/issues) with the section, the action and the message the panel showed.
 

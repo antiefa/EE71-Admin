@@ -12,4 +12,5 @@ First public release, Chrome only.
 - Firmware update flow with progress and battery check, WPS with its firmware restrictions, settings backup with local contents inspection, restore verified against the router IMEI, storage state, reboot, power off and factory reset.
 - Safety rules from the firmware: dangerous fields are locked behind an explicit unlock, irreversible actions ask for confirmation, and leaving a section with unsaved changes warns first.
 - About section with version, author, license and project links, plus a one-time risk consent shown on first launch.
-- Russian and English interface, light and dark theme, layout down to 320 pixels wide.
+- Language and theme switches in the header, each cycling through three states and remembering the choice; on narrow screens they move to the top of the drawer menu.
+- Russian and English interface with data volumes formatted in the interface language, light and dark theme, layout down to 320 pixels wide.
