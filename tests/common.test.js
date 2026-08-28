@@ -821,10 +821,14 @@ await test("все используемые общие функции импор
 
   const importStart = panel.indexOf("const {");
   const importEnd = panel.indexOf("} = global.EE71;");
-  const imported = [...panel.slice(importStart, importEnd).matchAll(/^\s{4}([A-Za-z_]\w*),?$/gm)].map((m) => m[1]);
+  // Имя может браться под псевдонимом: `formatBytes: formatBytesRaw` — тогда
+  // в панели живёт своя обёртка с исходным именем.
+  const imported = [...panel.slice(importStart, importEnd).matchAll(/^\s{4}([A-Za-z_]\w*)(?:: [A-Za-z_]\w*)?,?$/gm)].map((m) => m[1]);
   const body = panel.slice(importEnd);
 
-  const missing = exported.filter((name) => !imported.includes(name) && new RegExp(`\\b${name}\\b`).test(body));
+  const missing = exported.filter((name) => !imported.includes(name)
+    && !new RegExp(`function ${name}\\(`).test(body)
+    && new RegExp(`\\b${name}\\b`).test(body));
   assert.deepEqual(missing, [], `не импортированы: ${missing.join(", ")}`);
 });
 
@@ -1959,6 +1963,46 @@ await test("копирайт и локализованное имя на мес�
   // Имя в шапке панели переводится тем же способом, что и остальной интерфейс.
   const i18n = readFileSync(join(projectRoot, "extension", "i18n.js"), "utf8");
   assert.ok(/appName: "EE71 Панель"/.test(i18n) && /appName: "EE71 Admin"/.test(i18n));
+});
+
+// Объёмы данных показывались английскими единицами в обоих языках: список
+// единиц был зашит в общей функции. Теперь подписи и разделитель приходят
+// из словаря, поэтому чинить их приходится только в одном месте.
+await test("объёмы показываются на языке интерфейса", () => {
+  const { formatBytes } = globalThis.EE71;
+  const ru = { units: ["Б", "КБ", "МБ", "ГБ", "ТБ"], locale: "ru" };
+
+  assert.equal(formatBytes(3.4 * 1024 ** 3), "3.4 GB", "по умолчанию единицы английские");
+  assert.equal(formatBytes(3.4 * 1024 ** 3, ru), "3,4 ГБ");
+  assert.equal(formatBytes(940 * 1024 ** 2, ru), "940 МБ");
+  assert.equal(formatBytes(0, ru), "0 Б");
+  assert.equal(formatBytes(1024 ** 4, ru), "1,0 ТБ");
+  assert.equal(formatBytes(-1, ru), null, "отрицательный объём не форматируется");
+  // Неполный список подписей игнорируется, иначе единица подставилась бы не та.
+  assert.equal(formatBytes(1024, { units: ["Б", "КБ"], locale: "ru" }), "1,0 KB");
+
+  const js = readFileSync(join(projectRoot, "extension", "panel.js"), "utf8");
+  assert.ok(/function formatBytes\(value\) \{[\s\S]{0,240}units: \[t\("unitB"\), t\("unitKb"\), t\("unitMb"\), t\("unitGb"\), t\("unitTb"\)\]/.test(js),
+    "панель подставляет подписи из словаря");
+  assert.equal((js.match(/formatBytesRaw\(/g) || []).length, 1, "общая функция вызывается через одну обёртку");
+
+  const i18n = readFileSync(join(projectRoot, "extension", "i18n.js"), "utf8");
+  ["unitB", "unitKb", "unitMb", "unitGb", "unitTb"].forEach((key) => {
+    assert.equal((i18n.match(new RegExp(`${key}: "`, "g")) || []).length, 2, `${key} есть в обоих словарях`);
+  });
+});
+
+// Битая ссылка на снимок видна только на GitHub, поэтому проверяется здесь.
+await test("снимки в описании на месте", () => {
+  [["README.md", "ru"], ["README.en.md", "en"]].forEach(([file, locale]) => {
+    const text = readFileSync(join(projectRoot, file), "utf8");
+    const links = [...text.matchAll(/!\[[^\]]*\]\((docs\/screenshots\/[^)]+)\)/g)].map((m) => m[1]);
+    assert.equal(links.length, 6, `${file}: шесть снимков`);
+    links.forEach((link) => {
+      assert.ok(link.startsWith(`docs/screenshots/${locale}/`), `${file}: снимок своего языка — ${link}`);
+      assert.ok(statSync(join(projectRoot, link)).size > 0, `${link} существует`);
+    });
+  });
 });
 
 await test("версии в манифесте и сборке согласованы", () => {

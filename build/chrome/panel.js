@@ -79,7 +79,7 @@
     buildDraftPayload,
     DEVICE_BLOCK_LIMIT,
     formatBand,
-    formatBytes,
+    formatBytes: formatBytesRaw,
     formatDuration,
     splitDuration,
     donutSlices,
@@ -310,6 +310,14 @@
   // Версия показывается из манифеста: в разметке она разошлась бы со сборкой.
   function fillAboutVersion() {
     dom.aboutVersion.textContent = chrome.runtime.getManifest().version;
+  }
+
+  // Объёмы показываются на языке интерфейса: «3,4 ГБ» и «3.4 GB».
+  function formatBytes(value) {
+    return formatBytesRaw(value, {
+      units: [t("unitB"), t("unitKb"), t("unitMb"), t("unitGb"), t("unitTb")],
+      locale
+    });
   }
 
   function applyTranslations() {

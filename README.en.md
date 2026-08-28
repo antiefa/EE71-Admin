@@ -16,6 +16,37 @@ The panel writes router settings directly, including those hidden in the stock w
 
 > This project is not affiliated with Alcatel, TCL or any mobile operator. Compatibility depends on the router firmware version.
 
+## Screenshots
+
+![Router status overview](docs/screenshots/en/overview.png)
+
+<details>
+<summary>More screenshots: diagnostics, traffic, Wi-Fi, ports and security, maintenance</summary>
+
+**Diagnostics.** Signal readings with a quality verdict and an explanation for every parameter.
+
+![Diagnostics](docs/screenshots/en/diagnostics.png)
+
+**Traffic.** Usage with a plan progress bar, session donut charts, the monthly plan and the time limit.
+
+![Traffic](docs/screenshots/en/traffic.png)
+
+**Wi-Fi.** Active band and network settings; dangerous fields stay locked.
+
+![Wi-Fi](docs/screenshots/en/wifi.png)
+
+**Ports and security.** Response to ping from the internet, port forwarding, DMZ and remote router access.
+
+![Ports and security](docs/screenshots/en/ports.png)
+
+**Maintenance.** Device details, power saving and the firmware update.
+
+![Maintenance](docs/screenshots/en/maintenance.png)
+
+</details>
+
+The screenshots were taken against a stub router: every value on them is made up.
+
 ## Features in 0.1.0
 
 - sign-in with the router web interface account;

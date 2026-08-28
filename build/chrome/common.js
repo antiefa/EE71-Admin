@@ -423,19 +423,32 @@
     };
   }
 
-  function formatBytes(value) {
+  // Подписи единиц и разделитель дробной части зависят от языка, поэтому
+  // приходят снаружи: в русском интерфейсе это «3,4 ГБ», в английском «3.4 GB».
+  const BYTE_UNITS = ["B", "KB", "MB", "GB", "TB"];
+
+  function formatBytes(value, options) {
     const bytes = Number(value);
     if (!Number.isFinite(bytes) || bytes < 0) {
       return null;
     }
-    const units = ["B", "KB", "MB", "GB", "TB"];
+    const units = (options && options.units && options.units.length === BYTE_UNITS.length)
+      ? options.units
+      : BYTE_UNITS;
+    const locale = (options && options.locale) || "en";
     let size = bytes;
     let unit = 0;
     while (size >= 1024 && unit < units.length - 1) {
       size /= 1024;
       unit += 1;
     }
-    return `${unit === 0 ? size : size.toFixed(size >= 100 ? 0 : 1)} ${units[unit]}`;
+    const digits = unit === 0 || size >= 100 ? 0 : 1;
+    const number = size.toLocaleString(locale, {
+      minimumFractionDigits: digits,
+      maximumFractionDigits: digits,
+      useGrouping: false
+    });
+    return `${number} ${units[unit]}`;
   }
 
   function formatDuration(value) {
