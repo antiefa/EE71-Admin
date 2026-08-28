@@ -1,0 +1,2200 @@
+<!doctype html>
+<!--
+  EE71 Панель
+  Copyright (c) 2026 antiefa
+  SPDX-License-Identifier: MIT
+-->
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>EE71 Панель</title>
+  <link rel="stylesheet" href="panel.css">
+</head>
+<body>
+  <div class="page">
+    <header class="appbar">
+      <button class="appbar__menu" id="menuButton" type="button" aria-expanded="false" aria-controls="tabsNav">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"></path></svg>
+      </button>
+      <span class="appbar__icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4.5 9.5a10.5 10.5 0 0 1 15 0"></path>
+          <path d="M7.5 12.8a6.2 6.2 0 0 1 9 0"></path>
+          <circle cx="12" cy="17" r="1.4" fill="currentColor" stroke="none"></circle>
+        </svg>
+      </span>
+      <span class="appbar__brand">
+        <strong data-i18n="appName">EE71 Панель</strong>
+        <span class="appbar__meta" data-i18n="appTagline">Управление роутером Alcatel EE71</span>
+      </span>
+      <span id="routerStatus" class="router-status">
+        <span class="router-status__dot"></span>
+        <span id="routerStatusText" data-i18n="statusOffline">Нет связи</span>
+      </span>
+      <span class="appbar__session" id="sessionSummary" hidden>
+        <span class="appbar__session-user" id="sessionUser"></span>
+        <button class="secondary-button" id="signOutButton" type="button" data-i18n="buttonSignOut">Выйти</button>
+      </span>
+    </header>
+
+    <section class="auth" id="authScreen">
+      <div class="auth__card">
+        <span class="auth__icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="10" rx="2"></rect><path d="M8 10V7a4 4 0 0 1 8 0v3"></path></svg>
+        </span>
+        <h1 data-i18n="connectionTitle">Подключение к роутеру</h1>
+        <p class="auth__intro" data-i18n="connectionIntro">Пароль нигде не сохраняется.</p>
+
+        <div class="notice notice--danger">
+          <span class="notice__text">
+            <strong data-i18n="riskTitle">Всё, что делается панелью, — на ваш страх и риск</strong>
+            <span data-i18n="riskShort">Панель меняет настройки роутера напрямую, включая скрытые в его штатном интерфейсе. Работоспособность всех возможностей на живом устройстве не проверена, а ошибочная настройка способна оставить роутер без связи. Автор ответственности не несёт.</span>
+          </span>
+        </div>
+
+        <form id="signInForm" novalidate>
+          <div class="form-grid">
+            <div class="field">
+              <label for="routerAddress" data-i18n="fieldAddress">Адрес роутера</label>
+              <input class="control" id="routerAddress" type="text" autocomplete="off" spellcheck="false" value="192.168.1.1">
+            </div>
+            <div class="field">
+              <label for="routerUser" data-i18n="fieldUser">Пользователь</label>
+              <input class="control" id="routerUser" type="text" autocomplete="off" spellcheck="false" value="admin">
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="routerPassword" data-i18n="fieldPassword">Пароль</label>
+            <span class="password-control">
+              <input class="control" id="routerPassword" type="password" autocomplete="off">
+              <button class="reveal-button" id="revealPassword" type="button" data-reveal-for="routerPassword" aria-pressed="false"></button>
+            </span>
+            <small data-i18n="fieldPasswordHint">Тот же пароль, что и для веб-интерфейса.</small>
+          </div>
+
+          <div class="auth__footer">
+            <span id="signInStatus" class="save-status"></span>
+            <button class="save-button" id="signInButton" type="submit" data-i18n="buttonSignIn">Войти</button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <main class="settings-layout" id="panelLayout" hidden>
+      <div class="scrim" id="menuScrim" hidden></div>
+      <nav class="tabs" id="tabsNav" role="tablist" aria-label="Разделы панели">
+        <span class="tabs__head">
+          <span class="tabs__title" data-i18n="tabsTitle">Разделы</span>
+          <button class="tabs__close" id="menuClose" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"></path></svg>
+          </button>
+        </span>
+
+        <button class="tab" type="button" role="tab" id="tab-overview" data-target="overview" aria-selected="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"></rect><path d="M3 9h18M8 14h8"></path></svg>
+          <span data-i18n="tabOverview">Обзор</span>
+        </button>
+
+        <button class="tab" type="button" role="tab" id="tab-mobile" data-target="mobile" aria-selected="false">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V9M9 20V5M14 20v-8M19 20V3"></path></svg>
+          <span data-i18n="tabMobile">Мобильная сеть</span>
+        </button>
+
+        <button class="tab" type="button" role="tab" id="tab-traffic" data-target="traffic" aria-selected="false">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a9 9 0 1 0 9 9h-9z"></path><path d="M12 3v9h9a9 9 0 0 0-9-9z" opacity=".45"></path></svg>
+          <span data-i18n="tabTraffic">Трафик</span>
+        </button>
+
+        <button class="tab" type="button" role="tab" id="tab-profiles" data-target="profiles" aria-selected="false">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7a2 2 0 0 1 2-2h4l2 2h6a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"></path></svg>
+          <span data-i18n="tabProfiles">Профили APN</span>
+        </button>
+
+        <button class="tab" type="button" role="tab" id="tab-sim" data-target="sim" aria-selected="false">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h8l4 4v14a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"></path><rect x="8.5" y="11" width="7" height="7" rx="1"></rect></svg>
+          <span data-i18n="tabSim">SIM и PIN</span>
+        </button>
+
+        <button class="tab" type="button" role="tab" id="tab-network" data-target="network" aria-selected="false">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="13" width="18" height="7" rx="2"></rect><path d="M7 13V8a5 5 0 0 1 10 0v5M7 16.5h.01M11 16.5h4"></path></svg>
+          <span data-i18n="tabNetwork">Сеть и DHCP</span>
+        </button>
+
+        <button class="tab" type="button" role="tab" id="tab-wifi" data-target="wifi" aria-selected="false">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 9.5a10.5 10.5 0 0 1 15 0M7.5 12.8a6.2 6.2 0 0 1 9 0"></path><circle cx="12" cy="17" r="1.2" fill="currentColor" stroke="none"></circle></svg>
+          <span data-i18n="tabWifi">Wi-Fi</span>
+        </button>
+
+        <button class="tab" type="button" role="tab" id="tab-devices" data-target="devices" aria-selected="false">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="14" height="10" rx="2"></rect><path d="M6 20h6M9 16v4"></path><rect x="18" y="10" width="4" height="10" rx="1"></rect></svg>
+          <span data-i18n="tabDevices">Устройства</span>
+        </button>
+
+        <button class="tab" type="button" role="tab" id="tab-filters" data-target="filters" aria-selected="false">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5h18l-7 8v6l-4 2v-8z"></path></svg>
+          <span data-i18n="tabFilters">Фильтры</span>
+        </button>
+
+        <button class="tab" type="button" role="tab" id="tab-ports" data-target="ports" aria-selected="false">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v6c0 4.5-3 7.6-7 9-4-1.4-7-4.5-7-9V6z"></path><path d="M9.5 12l1.8 1.8 3.4-3.6"></path></svg>
+          <span data-i18n="tabPorts">Порты и защита</span>
+        </button>
+
+        <button class="tab" type="button" role="tab" id="tab-sms" data-target="sms" aria-selected="false">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H8l-4 4V5a2 2 0 0 1 2-2h13a2 2 0 0 1 2 2z"></path></svg>
+          <span data-i18n="tabSms">SMS</span>
+        </button>
+
+        <button class="tab" type="button" role="tab" id="tab-diagnostics" data-target="diagnostics" aria-selected="false">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l2.5-6 5 12L17 12h4"></path></svg>
+          <span data-i18n="tabDiagnostics">Диагностика</span>
+        </button>
+
+        <button class="tab" type="button" role="tab" id="tab-log" data-target="log" aria-selected="false">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"></path><path d="M14 3v5h5M9 13h6M9 17h4"></path></svg>
+          <span data-i18n="tabLog">Журнал</span>
+        </button>
+
+        <button class="tab" type="button" role="tab" id="tab-maintenance" data-target="maintenance" aria-selected="false">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20.5 7.5a5 5 0 0 1-6.7 6.7l-5.6 5.6a2 2 0 0 1-2.8-2.8l5.6-5.6A5 5 0 0 1 17.5 4.5l-3 3 2 2 3-3z"></path></svg>
+          <span data-i18n="tabMaintenance">Обслуживание</span>
+        </button>
+        <button class="tab" type="button" role="tab" id="tab-about" data-target="about" aria-selected="false">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 11v5"></path><path d="M12 8v.01"></path></svg>
+          <span data-i18n="tabAbout">О расширении</span>
+        </button>
+      </nav>
+
+      <div class="settings-content">
+        <!-- Обзор и подключение -->
+        <section class="panel" id="panel-overview" role="tabpanel" aria-labelledby="tab-overview">
+          <h1 data-i18n="overviewTitle">Обзор</h1>
+          <p class="panel__intro" data-i18n="overviewIntro">Текущее состояние роутера.</p>
+          <div class="form-section">
+            <div class="metric-grid" id="metricGrid">
+              <div class="metric"><span class="metric__label" data-i18n="metricBattery">Заряд</span><strong class="metric__value" id="metricBattery">— —</strong></div>
+              <div class="metric"><span class="metric__label" data-i18n="metricNetwork">Сеть</span><strong class="metric__value" id="metricNetwork">— —</strong></div>
+              <div class="metric"><span class="metric__label" data-hint="hintSignalBars"><span data-i18n="metricSignal">Сигнал</span></span><strong class="metric__value" id="metricSignal">— —</strong></div>
+              <div class="metric"><span class="metric__label" data-i18n="metricConnection">Подключение</span><strong class="metric__value" id="metricConnection">— —</strong></div>
+              <div class="metric"><span class="metric__label" data-i18n="metricWifiClients">Клиенты Wi-Fi</span><strong class="metric__value" id="metricClients">— —</strong></div>
+              <div class="metric"><span class="metric__label" data-i18n="metricRoaming">Роуминг</span><strong class="metric__value" id="metricRoaming">— —</strong></div>
+            </div>
+
+            <div class="form-footer form-footer--tools">
+              <span class="auto-refresh">
+                <label for="overviewInterval" data-i18n="autoRefresh">Автообновление</label>
+                <span class="select-control select-control--compact">
+                  <select id="overviewInterval" data-auto-refresh></select>
+                </span>
+              </span>
+              <span id="overviewStatus" class="save-status"></span>
+              <button class="save-button" id="overviewRefresh" type="button" data-i18n="buttonRefresh">Обновить</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- Сеть и DHCP -->
+        <section class="panel" id="panel-mobile" role="tabpanel" aria-labelledby="tab-mobile" hidden>
+          <h1 data-i18n="mobileTitle">Мобильная сеть</h1>
+          <p class="panel__intro" data-i18n="mobileIntro">Режим работы модема и параметры подключения.</p>
+
+          <div class="form-section">
+            <h2 data-i18n="sectionConnectionState">Текущее подключение</h2>
+            <div class="detail-list">
+              <div class="detail-row"><span data-i18n="stateStatus">Состояние</span><strong data-state="status">— —</strong></div>
+              <div class="detail-row"><span data-i18n="stateOperator">Оператор</span><strong data-state="operator">— —</strong></div>
+              <div class="detail-row"><span data-i18n="stateProfile">Профиль</span><strong data-state="ConnectProfile">— —</strong></div>
+              <div class="detail-row"><span data-i18n="stateIpv4">Адрес IPv4</span><strong data-state="IPv4Adrress">— —</strong></div>
+              <div class="detail-row"><span data-i18n="stateIpv6">Адрес IPv6</span><strong data-state="IPv6Adrress">— —</strong></div>
+              <div class="detail-row"><span data-i18n="stateDuration">Длительность сессии</span><strong data-state="ConnectionTime">— —</strong></div>
+              <div class="detail-row"><span data-i18n="stateReceived">Принято</span><strong data-state="DlBytes">— —</strong></div>
+              <div class="detail-row"><span data-i18n="stateSent">Передано</span><strong data-state="UlBytes">— —</strong></div>
+            </div>
+            <div class="form-footer form-footer--tools">
+              <button class="secondary-button secondary-button--inline" id="connectButton" type="button" data-i18n="buttonConnect">Подключить</button>
+              <button class="secondary-button secondary-button--inline" id="disconnectButton" type="button" data-i18n="buttonDisconnect">Отключить</button>
+              <span id="connectionStatus" class="save-status"></span>
+              <button class="save-button" id="mobileRefresh" type="button" data-i18n="buttonRefresh">Обновить</button>
+            </div>
+          </div>
+
+          <form id="mobileForm" novalidate>
+            <div class="form-section">
+              <h2 data-i18n="sectionNetworkMode">Режим сети</h2>
+              <div class="form-grid">
+                <div class="field field--protected">
+                  <label for="networkMode" data-hint="hintNetworkMode">
+                    <span data-i18n="fieldNetworkMode">Разрешённые сети</span>
+                    <span class="danger-badge" data-i18n="dangerBadge">Опасный параметр</span>
+                  </label>
+                  <span class="locked-control">
+                    <span class="select-control"><select id="networkMode" disabled></select></span>
+                    <button class="lock-button" type="button" data-unlock-for="networkMode" data-warning="unlockConfirmNetworkMode"></button>
+                  </span>
+                </div>
+                <div class="field field--protected">
+                  <label for="netselectionMode" data-hint="hintNetselection">
+                    <span data-i18n="fieldNetselection">Выбор оператора</span>
+                    <span class="danger-badge" data-i18n="dangerBadge">Опасный параметр</span>
+                  </label>
+                  <span class="locked-control">
+                    <span class="select-control"><select id="netselectionMode" disabled></select></span>
+                    <button class="lock-button" type="button" data-unlock-for="netselectionMode" data-warning="unlockConfirmNetselection"></button>
+                  </span>
+                </div>
+              </div>
+            <div class="operators" id="operatorsSection" hidden>
+              <h3 data-hint="hintOperators"><span data-i18n="sectionOperators">Доступные сети</span></h3>
+              <p class="section-hint" data-i18n="operatorsIntro">Поиск занимает до минуты.</p>
+              <div class="operator-list" id="operatorList"></div>
+              <div class="form-footer form-footer--tools">
+                <button class="secondary-button secondary-button--inline" id="searchNetworks" type="button" data-i18n="buttonSearchNetworks">Найти сети</button>
+                <span id="searchStatus" class="save-status"></span>
+              </div>
+            </div>
+
+            </div>
+
+            <div class="form-section">
+              <h2 data-i18n="sectionConnectionParams">Параметры подключения</h2>
+              <div class="form-grid">
+                <div class="field">
+                  <label for="connectMode" data-hint="hintConnectMode"><span data-i18n="fieldConnectMode">Подключение</span></label>
+                  <span class="select-control"><select id="connectMode"></select></span>
+                </div>
+                <div class="field">
+                  <label for="pdpType" data-hint="hintPdpType"><span data-i18n="fieldPdpType">Версия протокола</span></label>
+                  <span class="select-control"><select id="pdpType"></select></span>
+                </div>
+              </div>
+
+              <div class="field field--lease">
+                <label for="idleTime" data-hint="hintIdleTime"><span data-i18n="fieldIdleTime">Отключение при простое</span></label>
+                <span class="number-control number-control--short">
+                  <input id="idleTime" type="number" min="0" max="7200" step="1">
+                  <span data-i18n="fieldIdleUnit">с</span>
+                </span>
+                <small class="field-error" data-error-for="IdleTime"></small>
+                <small data-i18n="fieldIdleHint">Ноль отключает автоматический разрыв соединения.</small>
+              </div>
+
+              <div class="switch-row switch-row--protected">
+                <span class="switch-row__copy">
+                  <strong data-hint="hintRoaming">
+                    <span data-i18n="fieldRoaming">Передача данных в роуминге</span>
+                    <span class="danger-badge" data-i18n="dangerBadge">Опасный параметр</span>
+                  </strong>
+                  <small data-i18n="fieldRoamingHint">Разрешает выходить в интернет в сети другого оператора.</small>
+                </span>
+                <button class="lock-button" type="button" data-unlock-for="roamingConnect" data-warning="unlockConfirmRoaming"></button>
+                <label class="switch" for="roamingConnect">
+                  <input id="roamingConnect" type="checkbox" disabled>
+                  <span class="switch__track"><span></span></span>
+                </label>
+              </div>
+            </div>
+
+            <div class="form-footer">
+              <button class="secondary-button secondary-button--inline" id="mobileReload" type="button" data-i18n="buttonReload">Перечитать</button>
+              <span id="mobileStatus" class="save-status"></span>
+              <button class="save-button" id="mobileSave" type="submit" data-i18n="buttonSave">Сохранить</button>
+            </div>
+          </form>
+        </section>
+
+        <section class="panel" id="panel-traffic" role="tabpanel" aria-labelledby="tab-traffic" hidden>
+          <h1 data-i18n="trafficTitle">Трафик</h1>
+          <p class="panel__intro" data-i18n="trafficIntro">Расход мобильного трафика и лимиты роутера. Штатный веб-интерфейс этот раздел не показывает.</p>
+
+          <div class="form-section">
+            <h2 data-hint="hintUsageRecord"><span data-i18n="sectionUsage">Расход</span></h2>
+            <p class="section-hint" data-i18n="usageNote">Счётчики ведёт сам роутер, и они приблизительны: за точными данными о начислениях обращайтесь к оператору.</p>
+
+            <div class="progress-bar" id="usageBar" hidden>
+              <span class="progress-bar__fill" id="usageBarFill"></span>
+            </div>
+            <p class="section-hint" id="usageSummary"></p>
+
+            <div class="donuts" id="usageDonuts" hidden></div>
+
+            <div class="detail-list">
+              <div class="detail-row"><span data-hint="hintUsageUsed"><span data-i18n="usageUsed">Израсходовано</span></span><strong data-usage="used">— —</strong></div>
+              <div class="detail-row"><span data-hint="hintUsagePlanValue"><span data-i18n="usagePlanValue">Месячный план</span></span><strong data-usage="plan">— —</strong></div>
+              <div class="detail-row"><span data-hint="hintUsageRemaining"><span data-i18n="usageRemaining">Осталось по плану</span></span><strong data-usage="remaining">— —</strong></div>
+              <div class="detail-row"><span data-hint="hintUsageRoaming"><span data-i18n="usageRoaming">В роуминге</span></span><strong data-usage="roamingUsed">— —</strong></div>
+              <div class="detail-row"><span data-hint="hintUsageSession"><span data-i18n="usageSession">Текущая сессия</span></span><strong data-usage="session">— —</strong></div>
+              <div class="detail-row"><span data-hint="hintUsageRoamingSession"><span data-i18n="usageRoamingSession">Сессия в роуминге</span></span><strong data-usage="roamingSession">— —</strong></div>
+              <div class="detail-row"><span data-hint="hintUsageTotalTime"><span data-i18n="usageTotalTime">Время подключения</span></span><span class="detail-row__value"><strong data-usage="totalTime">— —</strong><small class="detail-row__note" data-usage-note="totalTime"></small></span></div>
+              <div class="detail-row"><span data-hint="hintUsageSessionTime"><span data-i18n="usageSessionTime">Время текущей сессии</span></span><span class="detail-row__value"><strong data-usage="sessionTime">— —</strong><small class="detail-row__note" data-usage-note="sessionTime"></small></span></div>
+              <div class="detail-row"><span data-hint="hintUsageNextCycle"><span data-i18n="usageNextCycle">Следующий период</span></span><strong data-usage="nextCycle">— —</strong></div>
+              <div class="detail-row"><span data-hint="hintUsageRemainingDays"><span data-i18n="usageRemainingDays">Осталось дней</span></span><strong data-usage="remainingDays">— —</strong></div>
+            </div>
+
+            <div class="form-footer form-footer--tools">
+              <span id="trafficStatus" class="save-status"></span>
+              <button class="save-button" id="trafficRefresh" type="button" data-i18n="buttonRefresh">Обновить</button>
+            </div>
+          </div>
+
+          <form id="usageForm" novalidate>
+            <div class="form-section">
+              <h2 data-i18n="sectionUsagePlan">Месячный план</h2>
+
+              <div class="form-grid">
+                <div class="field">
+                  <label for="usagePlan" data-hint="hintUsagePlanField"><span data-i18n="fieldUsagePlan">Объём плана</span></label>
+                  <span class="number-control number-control--short">
+                    <input id="usagePlan" type="number" min="0" max="1024" step="1">
+                    <span id="usagePlanUnit" data-i18n="unitMb">МБ</span>
+                  </span>
+                  <small class="field-error" data-error-for="MonthlyPlan"></small>
+                  <small data-i18n="fieldUsagePlanHint">Ноль отключает лимит. Допустимо целое от 0 до 1024 в выбранной единице.</small>
+                </div>
+
+                <div class="field">
+                  <label for="usageUnit" data-i18n="fieldUsageUnit">Единица измерения</label>
+                  <span class="select-control">
+                    <select id="usageUnit">
+                      <option value="0" data-i18n="unitMb">МБ</option>
+                      <option value="1" data-i18n="unitGb">ГБ</option>
+                      <option value="2" data-i18n="unitKb">КБ</option>
+                    </select>
+                  </span>
+                </div>
+
+                <div class="field">
+                  <label for="usageBillingDay" data-hint="hintBillingDay"><span data-i18n="fieldBillingDay">День начала периода</span></label>
+                  <span class="number-control number-control--short">
+                    <input id="usageBillingDay" type="number" min="1" max="31" step="1">
+                    <span data-i18n="unitDay">число</span>
+                  </span>
+                  <small class="field-error" data-error-for="BillingDay"></small>
+                  <small data-i18n="fieldBillingDayHint">С этого числа каждый месяц счётчик расхода начинается заново.</small>
+                </div>
+              </div>
+
+              <label class="switch-row" for="usageAutoDisconnect">
+                <span class="switch-row__copy">
+                  <strong data-hint="hintAutoDisconnect"><span data-i18n="fieldAutoDisconnect">Отключаться при достижении лимита</span></strong>
+                  <small data-i18n="fieldAutoDisconnectHint">Роутер разорвёт соединение и не даст подключиться, пока план не изменён.</small>
+                </span>
+                <span class="switch">
+                  <input id="usageAutoDisconnect" type="checkbox">
+                  <span class="switch__track"><span></span></span>
+                </span>
+              </label>
+            </div>
+
+            <div class="form-section">
+              <h2 data-i18n="sectionUsageTime">Лимит времени</h2>
+
+              <label class="switch-row" for="usageTimeLimitFlag">
+                <span class="switch-row__copy">
+                  <strong data-hint="hintTimeLimit"><span data-i18n="fieldTimeLimit">Ограничивать время подключения</span></strong>
+                  <small data-i18n="fieldTimeLimitHint">По исчерпании времени роутер откажется подключаться.</small>
+                </span>
+                <span class="switch">
+                  <input id="usageTimeLimitFlag" type="checkbox">
+                  <span class="switch__track"><span></span></span>
+                </span>
+              </label>
+
+              <div class="field field--lease" id="usageTimeFields" hidden>
+                <label for="usageTimeLimit" data-i18n="fieldTimeLimitValue">Предел времени</label>
+                <span class="number-control number-control--short">
+                  <input id="usageTimeLimit" type="number" min="1" max="43200" step="1">
+                  <span data-i18n="unitMinute">мин</span>
+                </span>
+                <small class="field-error" data-error-for="TimeLimitTimes"></small>
+                <small data-i18n="fieldTimeLimitValueHint">От 1 до 43200 минут — это тридцать суток.</small>
+              </div>
+            </div>
+
+            <div class="form-footer">
+              <button class="secondary-button secondary-button--inline" id="usageReload" type="button" data-i18n="buttonReload">Перечитать</button>
+              <span id="usageStatus" class="save-status"></span>
+              <button class="save-button" id="usageSave" type="submit" data-i18n="buttonSave">Сохранить</button>
+            </div>
+          </form>
+
+          <div class="form-section">
+            <h2 data-i18n="sectionUsageReset">Счётчики</h2>
+
+            <div class="action-row action-row--danger">
+              <span class="action-row__copy">
+                <strong data-hint="hintUsageReset">
+                  <span data-i18n="fieldUsageReset">Обнулить счётчики расхода</span>
+                  <span class="danger-badge" data-i18n="dangerBadge">Опасный параметр</span>
+                </strong>
+                <small data-i18n="fieldUsageResetHint">Учёт начнётся заново, прежние значения роутер не хранит. Штатный веб-интерфейс так не делает: поведение на роутере не проверено.</small>
+              </span>
+              <button class="lock-button" type="button" data-unlock-for="usageReset" data-warning="unlockConfirmUsageReset"></button>
+              <button class="danger-button" id="usageReset" type="button" disabled data-i18n="buttonUsageReset">Обнулить</button>
+            </div>
+
+            <span id="usageResetStatus" class="save-status"></span>
+          </div>
+        </section>
+
+        <section class="panel" id="panel-profiles" role="tabpanel" aria-labelledby="tab-profiles" hidden>
+          <h1 data-i18n="profilesTitle">Профили APN</h1>
+          <p class="panel__intro" data-i18n="profilesIntro">Точки доступа оператора. Роутер подключается профилем, отмеченным основным.</p>
+
+          <div class="form-section">
+            <h2 data-hint="hintProfiles"><span data-i18n="sectionProfileList">Профили</span></h2>
+            <p class="section-hint" id="profilesCurrent"></p>
+            <p class="section-hint" id="profilesCount"></p>
+
+            <div class="profile-list" id="profileList"></div>
+            <p class="empty-note" id="profilesEmpty" data-i18n="profilesEmpty" hidden>Профилей нет.</p>
+
+            <div class="form-footer form-footer--tools">
+              <button class="secondary-button secondary-button--inline" id="profileNew" type="button" data-i18n="buttonProfileNew">Новый профиль</button>
+              <span id="profilesStatus" class="save-status"></span>
+              <button class="save-button" id="profilesRefresh" type="button" data-i18n="buttonRefresh">Обновить</button>
+            </div>
+          </div>
+
+          <form id="profileForm" novalidate hidden>
+            <div class="form-section">
+              <h2><span id="profileFormTitle" data-i18n="sectionProfileNew">Новый профиль</span></h2>
+
+              <div class="form-grid">
+                <div class="field">
+                  <label for="profileName" data-hint="hintProfileName"><span data-i18n="fieldProfileName">Название</span></label>
+                  <input class="control" id="profileName" type="text" autocomplete="off" spellcheck="false" maxlength="31">
+                  <small class="field-error" data-error-for="ProfileName"></small>
+                  <small data-i18n="fieldProfileNameHint">До 31 знака. Роутер не принимает : ; , " \ &amp; % &lt; &gt; ?</small>
+                </div>
+
+                <div class="field">
+                  <label for="profileApn" data-hint="hintProfileApn"><span data-i18n="fieldProfileApn">APN</span></label>
+                  <input class="control" id="profileApn" type="text" autocomplete="off" spellcheck="false" maxlength="127">
+                  <small class="field-error" data-error-for="APN"></small>
+                  <small data-i18n="fieldProfileApnHint">Имя точки доступа оператора, латиницей.</small>
+                </div>
+
+                <div class="field">
+                  <label for="profileDial" data-hint="hintProfileDial"><span data-i18n="fieldProfileDial">Номер дозвона</span></label>
+                  <input class="control" id="profileDial" type="text" autocomplete="off" spellcheck="false" maxlength="127">
+                  <small class="field-error" data-error-for="DailNumber"></small>
+                  <small data-i18n="fieldProfileDialHint">Для сетей LTE обычно *99#.</small>
+                </div>
+
+                <div class="field">
+                  <label for="profileAuth" data-hint="hintProfileAuth"><span data-i18n="fieldProfileAuth">Проверка подлинности</span></label>
+                  <span class="select-control">
+                    <select id="profileAuth">
+                      <option value="0" data-i18n="authNone">Без проверки</option>
+                      <option value="1">PAP</option>
+                      <option value="2">CHAP</option>
+                      <option value="3" data-i18n="authBoth">PAP и CHAP</option>
+                    </select>
+                  </span>
+                </div>
+
+                <div class="field">
+                  <label for="profileUser" data-i18n="fieldProfileUser">Пользователь</label>
+                  <input class="control" id="profileUser" type="text" autocomplete="off" spellcheck="false" maxlength="127">
+                  <small class="field-error" data-error-for="UserName"></small>
+                </div>
+
+                <div class="field">
+                  <label for="profilePassword" data-hint="hintProfilePassword"><span data-i18n="fieldProfilePassword">Пароль</span></label>
+                  <span class="password-control">
+                    <input class="control" id="profilePassword" type="password" autocomplete="off" maxlength="31">
+                    <button class="reveal-button" type="button" data-reveal-for="profilePassword"></button>
+                  </span>
+                  <small class="field-error" data-error-for="Password"></small>
+                  <small data-i18n="fieldProfilePasswordHint">Без пробелов, кавычек и обратной косой черты.</small>
+                </div>
+              </div>
+
+              <div class="form-footer">
+                <button class="secondary-button secondary-button--inline" id="profileCancel" type="button" data-i18n="buttonCancel">Отмена</button>
+                <span id="profileFormStatus" class="save-status"></span>
+                <button class="save-button" id="profileSave" type="submit" data-i18n="buttonSave">Сохранить</button>
+              </div>
+            </div>
+          </form>
+        </section>
+
+        <section class="panel" id="panel-sim" role="tabpanel" aria-labelledby="tab-sim" hidden>
+          <h1 data-i18n="simTitle">SIM и PIN</h1>
+          <p class="panel__intro" data-i18n="simIntro">Состояние SIM-карты и управление её защитой. Неверный код тратит попытку, поэтому все действия подтверждаются.</p>
+
+          <div class="notice notice--danger">
+            <span class="notice__text">
+              <strong data-i18n="simWarningTitle">Опасный раздел</strong>
+              <span data-i18n="simWarningBody">Число попыток ввода кодов у SIM-карты ограничено и не восстанавливается. Когда кончаются попытки PIN, нужен PUK; когда кончаются попытки PUK, карта становится непригодной навсегда, а после исчерпания попыток кода сетевой блокировки снять её сможет только оператор. Операции этого раздела на живом роутере ещё не проверялись — начинайте с чтения состояния и меняйте что-либо, только если понимаете последствия.</span>
+            </span>
+          </div>
+
+          <div class="form-section">
+            <h2 data-hint="hintSimStatus"><span data-i18n="sectionSimStatus">Состояние SIM-карты</span></h2>
+            <div class="detail-list">
+              <div class="detail-row"><span data-hint="hintSimState"><span data-i18n="simStateLabel">Состояние</span></span><strong data-sim="state">— —</strong></div>
+              <div class="detail-row"><span data-hint="hintSimPinState"><span data-i18n="simPinStateLabel">Запрос PIN</span></span><strong data-sim="pinState">— —</strong></div>
+              <div class="detail-row"><span data-hint="hintSimPinAttempts"><span data-i18n="simPinAttemptsLabel">Осталось попыток PIN</span></span><strong data-sim="pinAttempts">— —</strong></div>
+              <div class="detail-row"><span data-hint="hintSimPukAttempts"><span data-i18n="simPukAttemptsLabel">Осталось попыток PUK</span></span><strong data-sim="pukAttempts">— —</strong></div>
+              <div class="detail-row"><span data-hint="hintSimLockState"><span data-i18n="simLockStateLabel">Сетевая блокировка</span></span><strong data-sim="lockState">— —</strong></div>
+              <div class="detail-row"><span data-hint="hintSimLockAttempts"><span data-i18n="simLockAttemptsLabel">Осталось попыток кода блокировки</span></span><strong data-sim="lockAttempts">— —</strong></div>
+            </div>
+
+            <div class="form-footer form-footer--tools">
+              <span id="simStatus" class="save-status"></span>
+              <button class="save-button" id="simRefresh" type="button" data-i18n="buttonRefresh">Обновить</button>
+            </div>
+          </div>
+
+          <form id="simUnlockForm" novalidate hidden>
+            <div class="form-section">
+              <h2 data-hint="hintSimUnlock"><span data-i18n="sectionSimUnlock">Ввод PIN</span></h2>
+              <p class="section-hint section-hint--warning" id="simUnlockNote"></p>
+
+              <div class="field field--lease">
+                <label for="simUnlockPin" data-i18n="fieldSimPin">PIN</label>
+                <input class="control" id="simUnlockPin" type="password" inputmode="numeric" autocomplete="off" maxlength="8">
+                <small class="field-error" data-error-for="Pin"></small>
+              </div>
+
+              <label class="switch-row" for="simRemember">
+                <span class="switch-row__copy">
+                  <strong data-hint="hintSimRemember"><span data-i18n="fieldSimRemember">Запоминать PIN</span></strong>
+                  <small data-i18n="fieldSimRememberHint">Роутер сам подставит PIN при следующем включении.</small>
+                </span>
+                <span class="switch">
+                  <input id="simRemember" type="checkbox">
+                  <span class="switch__track"><span></span></span>
+                </span>
+              </label>
+
+              <div class="form-footer">
+                <span id="simUnlockStatus" class="save-status"></span>
+                <button class="save-button" id="simUnlockApply" type="submit" data-i18n="buttonSimUnlock">Разблокировать</button>
+              </div>
+            </div>
+          </form>
+
+          <form id="simPinForm" novalidate>
+            <div class="form-section">
+              <h2><span data-i18n="sectionSimPinToggle">Запрос PIN</span></h2>
+
+              <div class="switch-row switch-row--protected">
+                <span class="switch-row__copy">
+                  <strong>
+                    <span data-hint="hintSimPinToggle"><span data-i18n="fieldSimPinToggle">Запрашивать PIN при включении</span></span>
+                    <span class="danger-badge" data-i18n="dangerBadge">Опасный параметр</span>
+                  </strong>
+                  <small data-i18n="fieldSimPinToggleHint">Неверный код тратит попытку, а соединение при смене состояния прерывается.</small>
+                </span>
+                <button class="lock-button" type="button" data-unlock-for="simPinToggle" data-unlock-also="simTogglePin simToggleApply" data-warning="unlockConfirmSimPin"></button>
+                <label class="switch" for="simPinToggle">
+                  <input id="simPinToggle" type="checkbox" disabled>
+                  <span class="switch__track"><span></span></span>
+                </label>
+              </div>
+
+              <div class="field field--lease">
+                <label for="simTogglePin" data-i18n="fieldSimCurrentPin">Текущий PIN</label>
+                <input class="control" id="simTogglePin" type="password" inputmode="numeric" autocomplete="off" maxlength="8" disabled>
+                <small class="field-error" data-error-for="TogglePin"></small>
+              </div>
+
+              <div class="form-footer">
+                <span id="simToggleStatus" class="save-status"></span>
+                <button class="save-button" id="simToggleApply" type="submit" disabled data-i18n="buttonApply">Применить</button>
+              </div>
+            </div>
+          </form>
+
+          <form id="simChangeForm" novalidate>
+            <div class="form-section">
+              <h2 data-hint="hintSimChange"><span data-i18n="sectionSimChange">Смена PIN</span></h2>
+              <p class="section-hint" id="simChangeNote" hidden data-i18n="simChangeDisabled">Сменить PIN можно только при включённом запросе PIN.</p>
+
+              <div class="form-grid">
+                <div class="field">
+                  <label for="simCurrentPin" data-i18n="fieldSimCurrentPin">Текущий PIN</label>
+                  <input class="control" id="simCurrentPin" type="password" inputmode="numeric" autocomplete="off" maxlength="8">
+                  <small class="field-error" data-error-for="CurrentPin"></small>
+                </div>
+
+                <div class="field">
+                  <label for="simNewPin" data-i18n="fieldSimNewPin">Новый PIN</label>
+                  <input class="control" id="simNewPin" type="password" inputmode="numeric" autocomplete="off" maxlength="8">
+                  <small class="field-error" data-error-for="NewPin"></small>
+                  <small data-i18n="fieldSimPinHint">От 4 до 8 цифр.</small>
+                </div>
+
+                <div class="field">
+                  <label for="simConfirmPin" data-i18n="fieldSimConfirmPin">Новый PIN ещё раз</label>
+                  <input class="control" id="simConfirmPin" type="password" inputmode="numeric" autocomplete="off" maxlength="8">
+                  <small class="field-error" data-error-for="ConfirmPin"></small>
+                </div>
+              </div>
+
+              <div class="form-footer">
+                <span id="simChangeStatus" class="save-status"></span>
+                <button class="save-button" id="simChangeApply" type="submit" data-i18n="buttonSimChange">Сменить PIN</button>
+              </div>
+            </div>
+          </form>
+
+          <form id="simPukForm" novalidate hidden>
+            <div class="form-section">
+              <h2 data-hint="hintSimPuk"><span data-i18n="sectionSimPuk">Разблокировка по PUK</span></h2>
+              <p class="section-hint section-hint--warning" id="simPukNote"></p>
+
+              <div class="form-grid">
+                <div class="field">
+                  <label for="simPuk" data-i18n="fieldSimPuk">PUK</label>
+                  <input class="control" id="simPuk" type="password" inputmode="numeric" autocomplete="off" maxlength="8">
+                  <small class="field-error" data-error-for="Puk"></small>
+                  <small data-i18n="fieldSimPukHint">Ровно 8 цифр, выдаётся оператором вместе с картой.</small>
+                </div>
+
+                <div class="field">
+                  <label for="simPukNewPin" data-i18n="fieldSimNewPin">Новый PIN</label>
+                  <input class="control" id="simPukNewPin" type="password" inputmode="numeric" autocomplete="off" maxlength="8">
+                  <small class="field-error" data-error-for="PukNewPin"></small>
+                </div>
+
+                <div class="field">
+                  <label for="simPukConfirmPin" data-i18n="fieldSimConfirmPin">Новый PIN ещё раз</label>
+                  <input class="control" id="simPukConfirmPin" type="password" inputmode="numeric" autocomplete="off" maxlength="8">
+                  <small class="field-error" data-error-for="PukConfirmPin"></small>
+                </div>
+              </div>
+
+              <div class="form-footer">
+                <span id="simPukStatus" class="save-status"></span>
+                <button class="save-button" id="simPukApply" type="submit" data-i18n="buttonSimPukUnlock">Разблокировать карту</button>
+              </div>
+            </div>
+          </form>
+
+          <form id="simLockForm" novalidate>
+            <div class="form-section">
+              <h2 data-hint="hintSimLock"><span data-i18n="sectionSimLock">Сетевая блокировка</span></h2>
+              <p class="section-hint" id="simLockNote"></p>
+
+              <div class="field field--protected field--lease">
+                <label for="simLockCode" data-hint="hintSimLockCode">
+                  <span data-i18n="fieldSimLockCode">Код разблокировки</span>
+                  <span class="danger-badge" data-i18n="dangerBadge">Опасный параметр</span>
+                </label>
+                <span class="locked-control">
+                  <input class="control" id="simLockCode" type="text" inputmode="numeric" autocomplete="off" maxlength="16" readonly>
+                  <button class="lock-button" type="button" data-unlock-for="simLockCode" data-unlock-also="simLockApply" data-warning="unlockConfirmSimLock"></button>
+                </span>
+                <small class="field-error" data-error-for="Code"></small>
+                <small data-i18n="fieldSimLockCodeHint">Код выдаёт оператор, у которого куплено устройство. Число попыток ограничено.</small>
+              </div>
+
+              <div class="form-footer">
+                <span id="simLockStatus" class="save-status"></span>
+                <button class="save-button" id="simLockApply" type="submit" disabled data-i18n="buttonSimLockUnlock">Снять блокировку</button>
+              </div>
+            </div>
+          </form>
+        </section>
+
+        <section class="panel" id="panel-network" role="tabpanel" aria-labelledby="tab-network" hidden>
+          <h1 data-i18n="networkTitle">Сеть и DHCP</h1>
+          <p class="panel__intro" data-i18n="networkIntro">Адрес роутера и параметры DHCP-сервера.</p>
+
+          <form id="lanForm" novalidate>
+            <div class="form-section">
+              <h2 data-i18n="sectionAddressing">Адресация</h2>
+              <div class="form-grid">
+                <div class="field field--protected">
+                  <label for="lanIp" data-hint="hintRouterIp">
+                    <span data-i18n="fieldRouterIp">IP-адрес роутера</span>
+                    <span class="danger-badge" data-i18n="dangerBadge">Опасный параметр</span>
+                  </label>
+                  <span class="locked-control">
+                    <input class="control" id="lanIp" name="IPv4IPAddress" type="text" autocomplete="off" spellcheck="false" inputmode="decimal" readonly>
+                    <button class="lock-button" type="button" data-unlock-for="lanIp" data-warning="unlockConfirmIp"></button>
+                  </span>
+                  <small class="field-error" data-error-for="IPv4IPAddress"></small>
+                </div>
+                <div class="field field--protected">
+                  <label for="lanMask" data-hint="hintSubnetMask">
+                    <span data-i18n="fieldSubnetMask">Маска подсети</span>
+                    <span class="danger-badge" data-i18n="dangerBadge">Опасный параметр</span>
+                  </label>
+                  <span class="locked-control">
+                    <input class="control" id="lanMask" name="SubnetMask" type="text" autocomplete="off" spellcheck="false" inputmode="decimal" readonly>
+                    <button class="lock-button" type="button" data-unlock-for="lanMask" data-warning="unlockConfirmMask"></button>
+                  </span>
+                  <small class="field-error" data-error-for="SubnetMask"></small>
+                </div>
+              </div>
+              <div class="field">
+                <label for="lanHostName" data-hint="hintHostName"><span data-i18n="fieldHostName">Имя хоста</span></label>
+                <input class="control" id="lanHostName" name="host_name" type="text" autocomplete="off" spellcheck="false">
+                <small class="field-error" data-error-for="host_name"></small>
+              </div>
+            </div>
+
+            <div class="form-section">
+              <h2 data-i18n="sectionDhcp">DHCP-сервер</h2>
+              <div class="switch-row switch-row--protected">
+                <span class="switch-row__copy">
+                  <strong data-hint="hintDhcpEnabled">
+                    <span data-i18n="fieldDhcpEnabled">DHCP-сервер включён</span>
+                    <span class="danger-badge" data-i18n="dangerBadge">Опасный параметр</span>
+                  </strong>
+                  <small data-i18n="fieldDhcpEnabledHint">Выдаёт устройствам адреса автоматически.</small>
+                </span>
+                <button class="lock-button" type="button" data-unlock-for="lanDhcpEnabled" data-warning="unlockConfirmDhcp"></button>
+                <label class="switch" for="lanDhcpEnabled">
+                  <input id="lanDhcpEnabled" name="DHCPServerStatus" type="checkbox" disabled>
+                  <span class="switch__track"><span></span></span>
+                </label>
+              </div>
+
+              <div class="dhcp-fields" id="dhcpFields">
+                <div class="form-grid">
+                  <div class="field">
+                    <label for="lanRangeStart" data-hint="hintRangeStart"><span data-i18n="fieldRangeStart">Начало диапазона</span></label>
+                    <input class="control" id="lanRangeStart" name="StartIPAddress" type="text" autocomplete="off" spellcheck="false" inputmode="decimal">
+                    <small class="field-error" data-error-for="StartIPAddress"></small>
+                  </div>
+                  <div class="field">
+                    <label for="lanRangeEnd" data-hint="hintRangeEnd"><span data-i18n="fieldRangeEnd">Конец диапазона</span></label>
+                    <input class="control" id="lanRangeEnd" name="EndIPAddress" type="text" autocomplete="off" spellcheck="false" inputmode="decimal">
+                    <small class="field-error" data-error-for="EndIPAddress"></small>
+                  </div>
+                </div>
+                <div class="field field--lease">
+                  <label for="lanLease" data-hint="hintLease"><span data-i18n="fieldLease">Время аренды</span></label>
+                  <span class="number-control number-control--short">
+                    <input id="lanLease" name="DHCPLeaseTime" type="number" min="1" max="168" step="1">
+                    <span data-i18n="fieldLeaseUnit">ч</span>
+                  </span>
+                  <small class="field-error" data-error-for="DHCPLeaseTime"></small>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-section">
+              <h2 data-i18n="sectionDns">DNS</h2>
+              <div class="field field--dns-mode">
+                <label for="lanDnsMode" data-hint="hintDnsMode"><span data-i18n="fieldDnsMode">Режим DNS</span></label>
+                <span class="select-control">
+                  <select id="lanDnsMode" name="DNSMode">
+                    <option value="0" data-i18n="dnsAuto">Автоматически</option>
+                    <option value="1" data-i18n="dnsManual">Вручную</option>
+                  </select>
+                </span>
+              </div>
+              <div class="dns-fields" id="dnsFields" hidden>
+                <div class="form-grid">
+                  <div class="field">
+                    <label for="lanDns1" data-hint="hintDns1"><span data-i18n="fieldDns1">Основной DNS</span></label>
+                    <input class="control" id="lanDns1" name="DNSAddress1" type="text" autocomplete="off" spellcheck="false" inputmode="decimal">
+                    <small class="field-error" data-error-for="DNSAddress1"></small>
+                  </div>
+                  <div class="field">
+                    <label for="lanDns2" data-hint="hintDns2"><span data-i18n="fieldDns2">Дополнительный DNS</span></label>
+                    <input class="control" id="lanDns2" name="DNSAddress2" type="text" autocomplete="off" spellcheck="false" inputmode="decimal">
+                    <small class="field-error" data-error-for="DNSAddress2"></small>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-footer">
+              <button class="secondary-button secondary-button--inline" id="lanReload" type="button" data-i18n="buttonReload">Перечитать</button>
+              <span id="lanStatus" class="save-status"></span>
+              <button class="save-button" id="lanSave" type="submit" data-i18n="buttonSave">Сохранить</button>
+            </div>
+          </form>
+        </section>
+
+        <section class="panel" id="panel-wifi" role="tabpanel" aria-labelledby="tab-wifi" hidden>
+          <h1 data-i18n="wifiTitle">Wi-Fi</h1>
+          <p class="panel__intro" data-i18n="wifiIntro">Настройки точек доступа роутера.</p>
+
+          <form id="wlanForm" novalidate>
+
+            <div class="form-section">
+              <h2 data-i18n="wifiModeTitle">Режим работы</h2>
+              <p class="section-hint" data-i18n="wifiModeIntro">Роутер работает только в одном диапазоне одновременно.</p>
+              <div class="field field--protected field--dns-mode">
+                <label for="wifiMode" data-hint="hintWifiBand">
+                  <span data-i18n="wifiModeLabel">Активный диапазон</span>
+                  <span class="danger-badge" data-i18n="dangerBadge">Опасный параметр</span>
+                </label>
+                <span class="locked-control">
+                  <span class="select-control">
+                    <select id="wifiMode" disabled>
+                      <option value="1" data-i18n="wifiModeBand2g">2,4 ГГц</option>
+                      <option value="2" data-i18n="wifiModeBand5g">5 ГГц</option>
+                      <option value="3" data-i18n="wifiModeOff">Wi-Fi выключен</option>
+                    </select>
+                  </span>
+                  <button class="lock-button" type="button" data-unlock-for="wifiMode" data-warning="hintWifiBand"></button>
+                </span>
+              </div>
+            </div>
+
+            <div class="form-section">
+              <h2 data-i18n="wifiBand2g">Сеть</h2>
+
+              <div class="wifi-fields" id="wifi2gFields">
+                <div class="field field--protected">
+                  <label for="wifi2gSsid" data-hint="hintWifiSsid">
+                    <span data-i18n="wifiSsid">Имя сети (SSID)</span>
+                    <span class="danger-badge" data-i18n="dangerBadge">Опасный параметр</span>
+                  </label>
+                  <span class="locked-control">
+                    <input class="control" id="wifi2gSsid" type="text" autocomplete="off" spellcheck="false" maxlength="32" readonly>
+                    <button class="lock-button" type="button" data-unlock-for="wifi2gSsid" data-warning="hintWifiSsid"></button>
+                  </span>
+                  <small class="field-error" data-error-for="wifi2gSsid"></small>
+                </div>
+
+                <div class="form-grid">
+                  <div class="field field--protected">
+                    <label for="wifi2gSecurity" data-hint="hintWifiSecurity">
+                      <span data-i18n="wifiSecurity">Защита</span>
+                      <span class="danger-badge" data-i18n="dangerBadge">Опасный параметр</span>
+                    </label>
+                    <span class="locked-control">
+                      <span class="select-control">
+                        <select id="wifi2gSecurity" disabled></select>
+                      </span>
+                      <button class="lock-button" type="button" data-unlock-for="wifi2gSecurity" data-warning="hintWifiSecurity"></button>
+                    </span>
+                  </div>
+                  <div class="field">
+                    <label for="wifi2gWpaType" data-hint="hintWifiWpaType"><span data-i18n="wifiWpaType">Шифрование</span></label>
+                    <span class="select-control">
+                      <select id="wifi2gWpaType"></select>
+                    </span>
+                  </div>
+                </div>
+
+                <div class="field field--protected" id="wifi2gPasswordField">
+                  <label for="wifi2gPassword" data-hint="hintWifiPassword">
+                    <span data-i18n="wifiPassword">Пароль сети</span>
+                    <span class="danger-badge" data-i18n="dangerBadge">Опасный параметр</span>
+                  </label>
+                  <span class="locked-control">
+                    <span class="password-control">
+                    <input class="control" id="wifi2gPassword" type="password" autocomplete="off" spellcheck="false" maxlength="63" readonly>
+                    <button class="reveal-button" type="button" data-reveal-for="wifi2gPassword" aria-pressed="false"></button>
+                    </span>
+                    <button class="lock-button" type="button" data-unlock-for="wifi2gPassword" data-warning="hintWifiPassword"></button>
+                  </span>
+                  <small class="field-error" data-error-for="wifi2gPassword"></small>
+                </div>
+
+                <div class="form-grid">
+                  <div class="field">
+                    <label for="wifi2gChannel" data-hint="hintWifiChannel"><span data-i18n="wifiChannel">Канал</span></label>
+                    <span class="select-control"><select id="wifi2gChannel"></select></span>
+                  </div>
+                  <div class="field">
+                    <label for="wifi2gMode" data-hint="hintWifiMode"><span data-i18n="wifiMode">Режим</span></label>
+                    <span class="select-control"><select id="wifi2gMode"></select></span>
+                  </div>
+                </div>
+
+                <div class="field field--lease">
+                  <label for="wifi2gMaxClients" data-hint="hintWifiMaxClients"><span data-i18n="wifiMaxClients">Максимум устройств</span></label>
+                  <span class="number-control number-control--short">
+                    <input id="wifi2gMaxClients" type="number" min="1" max="15" step="1">
+                  </span>
+                  <small class="field-error" data-error-for="wifi2gMaxClients"></small>
+                  <small class="field-note" id="wifi2gClients"></small>
+                </div>
+
+                <label class="switch-row" for="wifi2gHidden">
+                  <span class="switch-row__copy">
+                    <strong data-hint="hintWifiHidden"><span data-i18n="wifiHidden">Скрывать имя сети</span></strong>
+                    <small data-i18n="wifiHiddenHint">Сеть перестанет отображаться в списке доступных.</small>
+                  </span>
+                  <span class="switch">
+                    <input id="wifi2gHidden" type="checkbox">
+                    <span class="switch__track"><span></span></span>
+                  </span>
+                </label>
+
+                <label class="switch-row" for="wifi2gIsolation">
+                  <span class="switch-row__copy">
+                    <strong data-hint="hintWifiIsolation"><span data-i18n="wifiIsolation">Изоляция клиентов</span></strong>
+                    <small data-i18n="wifiIsolationHint">Устройства в сети не видят друг друга.</small>
+                  </span>
+                  <span class="switch">
+                    <input id="wifi2gIsolation" type="checkbox">
+                    <span class="switch__track"><span></span></span>
+                  </span>
+                </label>
+              </div>
+            </div>
+
+            <div class="form-section">
+              <h2 data-i18n="wifiBand5g">Сеть</h2>
+
+              <div class="wifi-fields" id="wifi5gFields">
+                <div class="field field--protected">
+                  <label for="wifi5gSsid" data-hint="hintWifiSsid">
+                    <span data-i18n="wifiSsid">Имя сети (SSID)</span>
+                    <span class="danger-badge" data-i18n="dangerBadge">Опасный параметр</span>
+                  </label>
+                  <span class="locked-control">
+                    <input class="control" id="wifi5gSsid" type="text" autocomplete="off" spellcheck="false" maxlength="32" readonly>
+                    <button class="lock-button" type="button" data-unlock-for="wifi5gSsid" data-warning="hintWifiSsid"></button>
+                  </span>
+                  <small class="field-error" data-error-for="wifi5gSsid"></small>
+                </div>
+
+                <div class="form-grid">
+                  <div class="field field--protected">
+                    <label for="wifi5gSecurity" data-hint="hintWifiSecurity">
+                      <span data-i18n="wifiSecurity">Защита</span>
+                      <span class="danger-badge" data-i18n="dangerBadge">Опасный параметр</span>
+                    </label>
+                    <span class="locked-control">
+                      <span class="select-control">
+                        <select id="wifi5gSecurity" disabled></select>
+                      </span>
+                      <button class="lock-button" type="button" data-unlock-for="wifi5gSecurity" data-warning="hintWifiSecurity"></button>
+                    </span>
+                  </div>
+                  <div class="field">
+                    <label for="wifi5gWpaType" data-hint="hintWifiWpaType"><span data-i18n="wifiWpaType">Шифрование</span></label>
+                    <span class="select-control">
+                      <select id="wifi5gWpaType"></select>
+                    </span>
+                  </div>
+                </div>
+
+                <div class="field field--protected" id="wifi5gPasswordField">
+                  <label for="wifi5gPassword" data-hint="hintWifiPassword">
+                    <span data-i18n="wifiPassword">Пароль сети</span>
+                    <span class="danger-badge" data-i18n="dangerBadge">Опасный параметр</span>
+                  </label>
+                  <span class="locked-control">
+                    <span class="password-control">
+                    <input class="control" id="wifi5gPassword" type="password" autocomplete="off" spellcheck="false" maxlength="63" readonly>
+                    <button class="reveal-button" type="button" data-reveal-for="wifi5gPassword" aria-pressed="false"></button>
+                    </span>
+                    <button class="lock-button" type="button" data-unlock-for="wifi5gPassword" data-warning="hintWifiPassword"></button>
+                  </span>
+                  <small class="field-error" data-error-for="wifi5gPassword"></small>
+                </div>
+
+                <div class="form-grid">
+                  <div class="field">
+                    <label for="wifi5gChannel" data-hint="hintWifiChannel"><span data-i18n="wifiChannel">Канал</span></label>
+                    <span class="select-control"><select id="wifi5gChannel"></select></span>
+                  </div>
+                  <div class="field">
+                    <label for="wifi5gMode" data-hint="hintWifiMode"><span data-i18n="wifiMode">Режим</span></label>
+                    <span class="select-control"><select id="wifi5gMode"></select></span>
+                  </div>
+                </div>
+
+                <div class="field field--lease">
+                  <label for="wifi5gMaxClients" data-hint="hintWifiMaxClients"><span data-i18n="wifiMaxClients">Максимум устройств</span></label>
+                  <span class="number-control number-control--short">
+                    <input id="wifi5gMaxClients" type="number" min="1" max="15" step="1">
+                  </span>
+                  <small class="field-error" data-error-for="wifi5gMaxClients"></small>
+                  <small class="field-note" id="wifi5gClients"></small>
+                </div>
+
+                <label class="switch-row" for="wifi5gHidden">
+                  <span class="switch-row__copy">
+                    <strong data-hint="hintWifiHidden"><span data-i18n="wifiHidden">Скрывать имя сети</span></strong>
+                    <small data-i18n="wifiHiddenHint">Сеть перестанет отображаться в списке доступных.</small>
+                  </span>
+                  <span class="switch">
+                    <input id="wifi5gHidden" type="checkbox">
+                    <span class="switch__track"><span></span></span>
+                  </span>
+                </label>
+
+                <label class="switch-row" for="wifi5gIsolation">
+                  <span class="switch-row__copy">
+                    <strong data-hint="hintWifiIsolation"><span data-i18n="wifiIsolation">Изоляция клиентов</span></strong>
+                    <small data-i18n="wifiIsolationHint">Устройства в сети не видят друг друга.</small>
+                  </span>
+                  <span class="switch">
+                    <input id="wifi5gIsolation" type="checkbox">
+                    <span class="switch__track"><span></span></span>
+                  </span>
+                </label>
+              </div>
+            </div>
+
+            <div class="form-footer">
+              <button class="secondary-button secondary-button--inline" id="wlanReload" type="button" data-i18n="buttonReload">Перечитать</button>
+              <span id="wlanStatus" class="save-status"></span>
+              <button class="save-button" id="wlanSave" type="submit" data-i18n="buttonSave">Сохранить</button>
+            </div>
+          </form>
+        
+          <div class="form-section">
+            <h2 data-hint="hintWps"><span data-i18n="sectionWps">WPS</span></h2>
+            <p class="section-hint" data-i18n="wpsIntro">Быстрое подключение без ввода пароля: роутер примет запрос от устройства в течение двух минут.</p>
+
+            <div class="detail-list">
+              <div class="detail-row"><span data-i18n="wpsStateLabel">Состояние Wi-Fi</span><strong id="wpsState">— —</strong></div>
+            </div>
+            <p class="section-hint section-hint--warning" id="wpsRestriction" hidden></p>
+
+            <div class="action-row">
+              <span class="action-row__copy">
+                <strong data-i18n="wpsButtonTitle">Кнопка WPS</strong>
+                <small data-i18n="wpsButtonHint">Работает так же, как кнопка WPS на самом роутере: нажмите здесь, затем запустите подключение на устройстве.</small>
+              </span>
+              <button class="secondary-button secondary-button--inline" id="wpsStartButton" type="button" data-i18n="wpsButtonApply">Запустить</button>
+            </div>
+
+            <div class="field">
+              <label for="wpsPin" data-i18n="wpsPinLabel">Ключ WPS с подключаемого устройства</label>
+              <div class="filter-add">
+                <input class="control" id="wpsPin" type="text" inputmode="numeric" autocomplete="off" maxlength="8" placeholder="12345678">
+                <button class="secondary-button secondary-button--inline" id="wpsStartPin" type="button" data-i18n="wpsPinApply">Подключить по ключу</button>
+              </div>
+              <small class="field-error" data-error-for="wpsPin"></small>
+              <small data-i18n="wpsPinHint">Ключ показывает подключаемое устройство: четыре или восемь цифр.</small>
+            </div>
+
+            <span id="wpsStatus" class="save-status"></span>
+          </div>
+        </section>
+        <section class="panel" id="panel-devices" role="tabpanel" aria-labelledby="tab-devices" hidden>
+          <h1 data-i18n="devicesTitle">Подключённые устройства</h1>
+          <p class="panel__intro" data-i18n="devicesIntro">Устройства, подключённые к роутеру.</p>
+
+          <div class="form-section">
+            <h2 data-hint="hintDevices"><span data-i18n="sectionConnectedDevices">Подключены сейчас</span></h2>
+            <p class="section-hint" data-i18n="devicesBlockNote">Заблокировать можно любое устройство, кроме того, с которого открыта панель.</p>
+            <div class="device-list" id="deviceList"></div>
+            <p class="empty-note" id="devicesEmpty" data-i18n="devicesEmpty" hidden>Нет подключённых устройств.</p>
+            <div class="form-footer form-footer--tools">
+              <span id="devicesStatus" class="save-status"></span>
+              <button class="save-button" id="devicesRefresh" type="button" data-i18n="buttonRefresh">Обновить</button>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <h2 data-hint="hintBlockedDevices"><span data-i18n="sectionBlockedDevices">Заблокированные</span></h2>
+            <p class="section-hint" id="blockedCount"></p>
+            <div class="device-list" id="blockedList"></div>
+            <p class="empty-note" id="blockedEmpty" data-i18n="blockedEmpty" hidden>Заблокированных устройств нет.</p>
+          </div>
+
+          <form id="defaultRightsForm" novalidate>
+            <div class="form-section">
+              <h2 data-i18n="sectionDefaultRights">Права новых устройств</h2>
+
+              <div class="switch-row switch-row--protected">
+                <span class="switch-row__copy">
+                  <strong>
+                    <span data-i18n="fieldDefaultInternet">Доступ в интернет по умолчанию</span>
+                    <span class="danger-badge" data-i18n="dangerBadge">Опасный параметр</span>
+                  </strong>
+                  <small data-i18n="fieldDefaultInternetHint">Применяется к устройствам, которые подключатся впервые.</small>
+                </span>
+                <button class="lock-button" type="button" data-unlock-for="defaultInternet" data-warning="unlockConfirmDefaultRights"></button>
+                <label class="switch" for="defaultInternet">
+                  <input id="defaultInternet" type="checkbox" disabled>
+                  <span class="switch__track"><span></span></span>
+                </label>
+              </div>
+
+              <div class="switch-row switch-row--protected">
+                <span class="switch-row__copy">
+                  <strong>
+                    <span data-i18n="fieldDefaultStorage">Доступ к накопителю по умолчанию</span>
+                    <span class="danger-badge" data-i18n="dangerBadge">Опасный параметр</span>
+                  </strong>
+                  <small data-i18n="fieldDefaultStorageHint">Общий доступ к файлам на USB-накопителе.</small>
+                </span>
+                <button class="lock-button" type="button" data-unlock-for="defaultStorage" data-warning="unlockConfirmDefaultRights"></button>
+                <label class="switch" for="defaultStorage">
+                  <input id="defaultStorage" type="checkbox" disabled>
+                  <span class="switch__track"><span></span></span>
+                </label>
+              </div>
+
+              <div class="form-footer">
+                <span id="defaultRightsStatus" class="save-status"></span>
+                <button class="save-button" id="defaultRightsSave" type="submit" data-i18n="buttonSave">Сохранить</button>
+              </div>
+            </div>
+          </form>
+        </section>
+
+        <section class="panel" id="panel-filters" role="tabpanel" aria-labelledby="tab-filters" hidden>
+          <h1 data-i18n="filtersTitle">Фильтры</h1>
+          <p class="panel__intro" data-i18n="filtersIntro">Ограничение доступа по адресам устройств, по адресам и портам, по сайтам. Штатный веб-интерфейс этих разделов не показывает.</p>
+
+          <div class="notice notice--danger">
+            <span class="notice__text">
+              <strong data-i18n="filtersWarningTitle">Фильтр может отрезать вас от роутера</strong>
+              <span data-i18n="filtersWarningBody">Белый список пропускает только перечисленные устройства: если в нём не окажется вашего, панель и Wi-Fi станут недоступны, и вернуть доступ получится только сбросом роутера. Перед включением белого списка добавьте своё устройство — его можно выбрать из списка подключённых.</span>
+            </span>
+          </div>
+
+          <form id="macFilterForm" novalidate>
+            <div class="form-section">
+              <h2 data-hint="hintMacFilter"><span data-i18n="sectionMacFilter">Фильтр устройств по MAC</span></h2>
+
+              <div class="field field--protected field--dns-mode">
+                <label for="macFilterPolicy" data-hint="hintFilterPolicy">
+                  <span data-i18n="fieldFilterPolicy">Режим фильтра</span>
+                  <span class="danger-badge" data-i18n="dangerBadge">Опасный параметр</span>
+                </label>
+                <span class="locked-control">
+                  <span class="select-control">
+                    <select id="macFilterPolicy" disabled>
+                      <option value="0" data-i18n="filterOff">Выключен</option>
+                      <option value="2" data-i18n="filterDeny">Чёрный список</option>
+                      <option value="1" data-i18n="filterAllow">Белый список</option>
+                    </select>
+                  </span>
+                  <button class="lock-button" type="button" data-unlock-for="macFilterPolicy" data-warning="unlockConfirmFilter"></button>
+                </span>
+                <small data-i18n="fieldMacPolicyHint">Чёрный список запрещает перечисленным, белый — разрешает только им.</small>
+              </div>
+
+              <div class="filter-add">
+                <span class="select-control">
+                  <select id="macFilterDevice" data-i18n-aria="macFilterPickDevice"></select>
+                </span>
+                <input class="control" id="macFilterValue" data-i18n-aria="ariaMacAddress" type="text" autocomplete="off" spellcheck="false" maxlength="17" placeholder="00:11:22:33:44:55">
+                <button class="secondary-button secondary-button--inline" id="macFilterAdd" type="button" data-i18n="buttonAddToList">Добавить</button>
+              </div>
+              <small class="field-error" data-error-for="macValue"></small>
+
+              <div class="chip-list" id="macFilterList"></div>
+              <p class="empty-note" id="macFilterEmpty" data-i18n="filterListEmpty" hidden>Список пуст.</p>
+
+              <div class="form-footer">
+                <span id="macFilterStatus" class="save-status"></span>
+                <button class="save-button" id="macFilterSave" type="submit" data-i18n="buttonSave">Сохранить</button>
+              </div>
+            </div>
+          </form>
+
+          <form id="urlFilterForm" novalidate>
+            <div class="form-section">
+              <h2 data-hint="hintUrlFilter"><span data-i18n="sectionUrlFilter">Фильтр сайтов</span></h2>
+
+              <div class="field field--dns-mode">
+                <label for="urlFilterPolicy" data-i18n="fieldFilterPolicy">Режим фильтра</label>
+                <span class="select-control">
+                  <select id="urlFilterPolicy">
+                    <option value="0" data-i18n="filterOff">Выключен</option>
+                    <option value="2" data-i18n="filterDeny">Чёрный список</option>
+                  </select>
+                </span>
+                <small data-i18n="fieldUrlPolicyHint">Роутер поддерживает для сайтов только запрещающий список.</small>
+              </div>
+
+              <div class="filter-add">
+                <input class="control" id="urlFilterValue" data-i18n-aria="ariaSiteAddress" type="text" autocomplete="off" spellcheck="false" maxlength="120" placeholder="example.com">
+                <button class="secondary-button secondary-button--inline" id="urlFilterAdd" type="button" data-i18n="buttonAddToList">Добавить</button>
+              </div>
+              <small class="field-error" data-error-for="urlValue"></small>
+
+              <div class="chip-list" id="urlFilterList"></div>
+              <p class="empty-note" id="urlFilterEmpty" data-i18n="filterListEmpty" hidden>Список пуст.</p>
+
+              <div class="form-footer">
+                <span id="urlFilterStatus" class="save-status"></span>
+                <button class="save-button" id="urlFilterSave" type="submit" data-i18n="buttonSave">Сохранить</button>
+              </div>
+            </div>
+          </form>
+
+          <form id="ipFilterForm" novalidate>
+            <div class="form-section">
+              <h2 data-hint="hintIpFilter"><span data-i18n="sectionIpFilter">Фильтр по адресам и портам</span></h2>
+
+              <div class="field field--protected field--dns-mode">
+                <label for="ipFilterPolicy" data-hint="hintFilterPolicy">
+                  <span data-i18n="fieldFilterPolicy">Режим фильтра</span>
+                  <span class="danger-badge" data-i18n="dangerBadge">Опасный параметр</span>
+                </label>
+                <span class="locked-control">
+                  <span class="select-control">
+                    <select id="ipFilterPolicy" disabled>
+                      <option value="0" data-i18n="filterOff">Выключен</option>
+                      <option value="2" data-i18n="filterDeny">Чёрный список</option>
+                      <option value="1" data-i18n="filterAllow">Белый список</option>
+                    </select>
+                  </span>
+                  <button class="lock-button" type="button" data-unlock-for="ipFilterPolicy" data-warning="unlockConfirmFilter"></button>
+                </span>
+              </div>
+
+              <p class="section-hint" id="ipFilterCount"></p>
+
+              <div class="form-grid">
+                <div class="field">
+                  <label for="ipFilterLanIp" data-i18n="fieldIpFilterLanIp">Адрес в локальной сети</label>
+                  <input class="control" id="ipFilterLanIp" type="text" autocomplete="off" spellcheck="false" maxlength="15" placeholder="192.168.1.50">
+                  <small class="field-error" data-error-for="lanIp"></small>
+                </div>
+                <div class="field">
+                  <label for="ipFilterLanPort" data-i18n="fieldIpFilterLanPort">Порт в локальной сети</label>
+                  <input class="control" id="ipFilterLanPort" type="text" inputmode="numeric" autocomplete="off" maxlength="5">
+                  <small class="field-error" data-error-for="lanPort"></small>
+                </div>
+                <div class="field">
+                  <label for="ipFilterWanIp" data-i18n="fieldIpFilterWanIp">Внешний адрес</label>
+                  <input class="control" id="ipFilterWanIp" type="text" autocomplete="off" spellcheck="false" maxlength="15" placeholder="0.0.0.0">
+                  <small class="field-error" data-error-for="wanIp"></small>
+                  <small data-i18n="fieldIpFilterWanHint">Пустое поле означает любой внешний адрес.</small>
+                </div>
+                <div class="field">
+                  <label for="ipFilterWanPort" data-i18n="fieldIpFilterWanPort">Внешний порт</label>
+                  <input class="control" id="ipFilterWanPort" type="text" inputmode="numeric" autocomplete="off" maxlength="5">
+                  <small class="field-error" data-error-for="wanPort"></small>
+                </div>
+                <div class="field">
+                  <label for="ipFilterProtocol" data-i18n="fieldIpFilterProtocol">Протокол</label>
+                  <span class="select-control">
+                    <select id="ipFilterProtocol">
+                      <option value="6">TCP</option>
+                      <option value="17">UDP</option>
+                      <option value="253" data-i18n="protocolBoth">TCP и UDP</option>
+                    </select>
+                  </span>
+                </div>
+              </div>
+
+              <div class="form-footer form-footer--tools">
+                <button class="secondary-button secondary-button--inline" id="ipFilterAdd" type="button" data-i18n="buttonAddRule">Добавить правило</button>
+              </div>
+
+              <div class="rule-list" id="ipFilterList"></div>
+              <p class="empty-note" id="ipFilterEmpty" data-i18n="filterListEmpty" hidden>Список пуст.</p>
+
+              <div class="form-footer">
+                <span id="ipFilterStatus" class="save-status"></span>
+                <button class="save-button" id="ipFilterSave" type="submit" data-i18n="buttonSave">Сохранить</button>
+              </div>
+            </div>
+          </form>
+
+          <form id="upnpForm" novalidate>
+            <div class="form-section">
+              <h2><span data-i18n="sectionUpnp">UPnP</span></h2>
+
+              <label class="switch-row" for="upnpSwitch">
+                <span class="switch-row__copy">
+                  <strong data-hint="hintUpnp"><span data-i18n="fieldUpnp">Разрешить UPnP</span></strong>
+                  <small data-i18n="fieldUpnpHint">Программы смогут сами открывать себе порты на роутере.</small>
+                </span>
+                <span class="switch">
+                  <input id="upnpSwitch" type="checkbox">
+                  <span class="switch__track"><span></span></span>
+                </span>
+              </label>
+
+              <div class="form-footer">
+                <span id="upnpStatus" class="save-status"></span>
+                <button class="save-button" id="upnpSave" type="submit" data-i18n="buttonSave">Сохранить</button>
+              </div>
+            </div>
+          </form>
+        </section>
+
+        <section class="panel" id="panel-ports" role="tabpanel" aria-labelledby="tab-ports" hidden>
+          <h1 data-i18n="portsTitle">Порты и защита</h1>
+          <p class="panel__intro" data-i18n="portsIntro">Ответ на запросы из интернета, проброс портов, DMZ и доступ к роутеру снаружи. Штатный веб-интерфейс этих настроек не показывает, но прошивка их поддерживает.</p>
+
+          <div class="notice notice--danger">
+            <span class="notice__text">
+              <strong data-i18n="portsWarningTitle">Эти настройки открывают устройство наружу</strong>
+              <span data-i18n="portsWarningBody">Проброс порта и DMZ делают выбранное устройство доступным из интернета, а доступ к роутеру снаружи открывает вход в саму панель. Открывайте только то, что нужно, и закрывайте, когда надобность отпала. Запись этих настроек на реальном роутере ещё не проверялась.</span>
+            </span>
+          </div>
+
+          <form id="firewallForm" novalidate>
+            <div class="form-section">
+              <h2 data-hint="hintFirewall"><span data-i18n="sectionFirewall">Межсетевой экран</span></h2>
+
+              <div class="switch-row switch-row--protected">
+                <span class="switch-row__copy">
+                  <strong data-hint="hintWanPing">
+                    <span data-i18n="fieldWanPing">Отвечать на ping из интернета</span>
+                    <span class="danger-badge" data-i18n="dangerBadge">Опасный параметр</span>
+                  </strong>
+                  <small data-i18n="fieldWanPingHint">Пока выключено, роутер не отзывается на проверку связи снаружи и меньше заметен в сети оператора.</small>
+                </span>
+                <button class="lock-button" type="button" data-unlock-for="firewallWanPing" data-warning="unlockConfirmWanPing"></button>
+                <label class="switch" for="firewallWanPing">
+                  <input id="firewallWanPing" type="checkbox" disabled>
+                  <span class="switch__track"><span></span></span>
+                </label>
+              </div>
+
+              <div class="detail-list">
+                <div class="detail-row"><span data-i18n="fieldFirewallEnabled">Межсетевой экран</span><strong data-firewall="enabled">— —</strong></div>
+                <div class="detail-row"><span data-i18n="fieldFirewallIpFilter">Фильтр по адресам и портам</span><strong data-firewall="ipFilter">— —</strong></div>
+                <div class="detail-row"><span data-i18n="fieldFirewallForward">Проброс портов</span><strong data-firewall="portForward">— —</strong></div>
+              </div>
+              <small data-i18n="firewallStateHint">Эти три значения роутер выставляет сам, когда включаются фильтр по адресам и портам или проброс.</small>
+
+              <div class="form-footer">
+                <span id="firewallStatus" class="save-status"></span>
+                <button class="save-button" id="firewallSave" type="submit" data-i18n="buttonSave">Сохранить</button>
+              </div>
+            </div>
+          </form>
+
+          <form id="forwardForm" novalidate>
+            <div class="form-section">
+              <h2 data-hint="hintForward"><span data-i18n="sectionForward">Проброс портов</span></h2>
+
+              <p class="section-hint" id="forwardCount"></p>
+
+              <div class="form-grid">
+                <div class="field">
+                  <label for="forwardName" data-i18n="fieldForwardName">Название правила</label>
+                  <input class="control" id="forwardName" type="text" autocomplete="off" spellcheck="false" maxlength="31" placeholder="camera">
+                  <small class="field-error" data-error-for="name"></small>
+                </div>
+                <div class="field">
+                  <label for="forwardLanIp" data-i18n="fieldForwardLanIp">Адрес в локальной сети</label>
+                  <span class="select-control">
+                    <select id="forwardDevice" data-i18n-aria="devicePickAddress"></select>
+                  </span>
+                  <input class="control" id="forwardLanIp" type="text" autocomplete="off" spellcheck="false" maxlength="15" placeholder="192.168.1.50">
+                  <small class="field-error" data-error-for="lanIp"></small>
+                </div>
+                <div class="field">
+                  <label for="forwardLanPort" data-i18n="fieldForwardLanPort">Порт устройства</label>
+                  <input class="control" id="forwardLanPort" type="text" inputmode="numeric" autocomplete="off" maxlength="5">
+                  <small class="field-error" data-error-for="lanPort"></small>
+                </div>
+                <div class="field">
+                  <label for="forwardWanPort" data-i18n="fieldForwardWanPort">Внешний порт</label>
+                  <input class="control" id="forwardWanPort" type="text" inputmode="numeric" autocomplete="off" maxlength="5">
+                  <small class="field-error" data-error-for="wanPort"></small>
+                </div>
+                <div class="field">
+                  <label for="forwardProtocol" data-i18n="fieldForwardProtocol">Протокол</label>
+                  <span class="select-control">
+                    <select id="forwardProtocol">
+                      <option value="6">TCP</option>
+                      <option value="17">UDP</option>
+                      <option value="253" data-i18n="protocolBoth">TCP и UDP</option>
+                    </select>
+                  </span>
+                </div>
+              </div>
+
+              <div class="form-footer form-footer--tools">
+                <button class="secondary-button secondary-button--inline" id="forwardAdd" type="button" data-i18n="buttonAddRule">Добавить правило</button>
+                <span id="forwardStatus" class="save-status"></span>
+              </div>
+
+              <div class="rule-list" id="forwardList"></div>
+              <p class="empty-note" id="forwardEmpty" data-i18n="forwardListEmpty" hidden>Правил проброса нет.</p>
+            </div>
+          </form>
+
+          <form id="dmzForm" novalidate>
+            <div class="form-section">
+              <h2 data-hint="hintDmz"><span data-i18n="sectionDmz">DMZ</span></h2>
+
+              <div class="switch-row switch-row--protected">
+                <span class="switch-row__copy">
+                  <strong data-hint="hintDmzSwitch">
+                    <span data-i18n="fieldDmzEnabled">Открыть одно устройство целиком</span>
+                    <span class="danger-badge" data-i18n="dangerBadge">Опасный параметр</span>
+                  </strong>
+                  <small data-i18n="fieldDmzEnabledHint">Все входящие соединения, для которых нет правила проброса, роутер отдаст указанному устройству — вместе со всеми его службами.</small>
+                </span>
+                <button class="lock-button" type="button" data-unlock-for="dmzEnabled" data-warning="unlockConfirmDmz"></button>
+                <label class="switch" for="dmzEnabled">
+                  <input id="dmzEnabled" type="checkbox" disabled>
+                  <span class="switch__track"><span></span></span>
+                </label>
+              </div>
+
+              <div class="field">
+                <label for="dmzIp" data-i18n="fieldDmzIp">Адрес устройства</label>
+                <span class="select-control">
+                  <select id="dmzDevice" data-i18n-aria="devicePickAddress"></select>
+                </span>
+                <input class="control" id="dmzIp" type="text" autocomplete="off" spellcheck="false" maxlength="15" placeholder="192.168.1.100">
+                <small class="field-error" data-error-for="dmzIp"></small>
+              </div>
+
+              <div class="form-footer">
+                <span id="dmzStatus" class="save-status"></span>
+                <button class="save-button" id="dmzSave" type="submit" data-i18n="buttonSave">Сохранить</button>
+              </div>
+            </div>
+          </form>
+
+          <form id="wanAccessForm" novalidate>
+            <div class="form-section">
+              <h2 data-hint="hintWanAccess"><span data-i18n="sectionWanAccess">Доступ к роутеру из интернета</span></h2>
+
+              <div class="switch-row switch-row--protected">
+                <span class="switch-row__copy">
+                  <strong data-hint="hintWanAccessSwitch">
+                    <span data-i18n="fieldWanAccess">Разрешить вход в роутер снаружи</span>
+                    <span class="danger-badge" data-i18n="dangerBadge">Опасный параметр</span>
+                  </strong>
+                  <small data-i18n="fieldWanAccessHint">Панель и веб-интерфейс роутера станут доступны из интернета, а не только из своей сети. Подбор пароля тогда возможен снаружи.</small>
+                </span>
+                <button class="lock-button" type="button" data-unlock-for="wanAccessSwitch" data-warning="unlockConfirmWanAccess"></button>
+                <label class="switch" for="wanAccessSwitch">
+                  <input id="wanAccessSwitch" type="checkbox" disabled>
+                  <span class="switch__track"><span></span></span>
+                </label>
+              </div>
+
+              <div class="form-footer">
+                <span id="wanAccessStatus" class="save-status"></span>
+                <button class="save-button" id="wanAccessSave" type="submit" data-i18n="buttonSave">Сохранить</button>
+              </div>
+            </div>
+          </form>
+        </section>
+
+        <section class="panel" id="panel-sms" role="tabpanel" aria-labelledby="tab-sms" hidden>
+          <h1 data-i18n="smsTitle">Сообщения</h1>
+          <p class="panel__intro" data-i18n="smsIntro">Входящие сообщения роутера и отправка новых.</p>
+
+          <div class="form-section">
+            <h2 data-hint="hintSmsStorage"><span data-i18n="sectionSmsInbox">Входящие</span></h2>
+            <p class="section-hint" id="smsStorageNote"></p>
+
+            <div class="segmented" id="smsFolders" role="tablist">
+              <button class="segmented__item" type="button" data-folder="inbox" aria-selected="true"><span data-i18n="smsFolderInbox">Входящие</span></button>
+              <button class="segmented__item" type="button" data-folder="send" aria-selected="false"><span data-i18n="smsFolderSent">Отправленные</span></button>
+              <button class="segmented__item" type="button" data-folder="draft" aria-selected="false"><span data-i18n="smsFolderDraft">Черновики</span></button>
+              <button class="segmented__item" type="button" data-folder="report" aria-selected="false"><span data-i18n="smsFolderReport">Отчёты</span></button>
+            </div>
+            <p class="section-hint" id="smsFolderNote" hidden></p>
+
+            <div class="sms-list" id="smsList"></div>
+            <p class="empty-note" id="smsEmpty" data-i18n="smsEmpty" hidden>Сообщений нет.</p>
+
+            <div class="sms-pager" id="smsPager" hidden>
+              <button class="secondary-button" id="smsPrev" type="button" data-i18n="buttonPrevPage">Назад</button>
+              <span class="sms-pager__label" id="smsPageLabel"></span>
+              <button class="secondary-button" id="smsNext" type="button" data-i18n="buttonNextPage">Вперёд</button>
+            </div>
+
+            <div class="form-footer form-footer--tools">
+              <button class="secondary-button secondary-button--inline" id="smsSelectAll" type="button" data-i18n="buttonSelectAll">Выбрать все</button>
+              <button class="secondary-button secondary-button--inline" id="smsDelete" type="button" disabled data-i18n="buttonDeleteSelected">Удалить выбранные</button>
+              <span id="smsStatus" class="save-status"></span>
+              <button class="save-button" id="smsRefresh" type="button" data-i18n="buttonRefresh">Обновить</button>
+            </div>
+          </div>
+
+          <form id="smsForwardingForm" novalidate>
+            <div class="form-section">
+              <h2 data-hint="hintSmsForwarding"><span data-i18n="sectionSmsForwarding">Переадресация сообщений</span></h2>
+
+              <label class="switch-row" for="smsForwardingFlag">
+                <span class="switch-row__copy">
+                  <strong><span data-i18n="fieldSmsForwarding">Пересылать входящие на номер</span></strong>
+                  <small data-i18n="fieldSmsForwardingHint">Каждое входящее сообщение роутер отправит дальше. Пересылка тарифицируется как обычная отправка.</small>
+                </span>
+                <span class="switch">
+                  <input id="smsForwardingFlag" type="checkbox">
+                  <span class="switch__track"><span></span></span>
+                </span>
+              </label>
+
+              <div class="field field--dns-mode" id="smsForwardingFields" hidden>
+                <label for="smsForwardingNumber" data-i18n="fieldSmsForwardingNumber">Номер получателя</label>
+                <input class="control" id="smsForwardingNumber" type="tel" autocomplete="off" spellcheck="false" inputmode="tel" maxlength="21" placeholder="+70000000000">
+                <small class="field-error" data-error-for="redirect_number"></small>
+                <small data-i18n="fieldSmsForwardingNumberHint">Только цифры, знак «+» можно поставить в начале.</small>
+              </div>
+
+              <div class="form-footer">
+                <span id="smsForwardingStatus" class="save-status"></span>
+                <button class="save-button" id="smsForwardingSave" type="submit" data-i18n="buttonSave">Сохранить</button>
+              </div>
+            </div>
+          </form>
+
+          <form id="smsSettingsForm" novalidate>
+            <div class="form-section">
+              <h2 data-i18n="sectionSmsSettings">Настройки сообщений</h2>
+
+              <label class="switch-row" for="smsReportFlag">
+                <span class="switch-row__copy">
+                  <strong data-hint="hintSmsReport"><span data-i18n="fieldSmsReport">Отчёты о доставке</span></strong>
+                  <small data-i18n="fieldSmsReportHint">Отчёты занимают место в хранилище.</small>
+                </span>
+                <span class="switch">
+                  <input id="smsReportFlag" type="checkbox">
+                  <span class="switch__track"><span></span></span>
+                </span>
+              </label>
+
+              <div class="form-grid">
+                <div class="field field--protected">
+                  <label for="smsStoreFlag" data-hint="hintSmsStore">
+                    <span data-i18n="fieldSmsStore">Место хранения</span>
+                    <span class="danger-badge" data-i18n="dangerBadge">Опасный параметр</span>
+                  </label>
+                  <span class="locked-control">
+                    <span class="select-control">
+                      <select id="smsStoreFlag" disabled>
+                        <option value="0" data-i18n="smsStoreSim">SIM-карта</option>
+                        <option value="1" data-i18n="smsStoreDevice">Память роутера</option>
+                      </select>
+                    </span>
+                    <button class="lock-button" type="button" data-unlock-for="smsStoreFlag" data-warning="unlockConfirmSmsStore"></button>
+                  </span>
+                </div>
+
+                <div class="field field--protected">
+                  <label for="smsCenter" data-hint="hintSmsCenter">
+                    <span data-i18n="fieldSmsCenter">Центр сообщений</span>
+                    <span class="danger-badge" data-i18n="dangerBadge">Опасный параметр</span>
+                  </label>
+                  <span class="locked-control">
+                    <input class="control" id="smsCenter" type="tel" autocomplete="off" spellcheck="false" maxlength="21" readonly>
+                    <button class="lock-button" type="button" data-unlock-for="smsCenter" data-warning="unlockConfirmSmsCenter"></button>
+                  </span>
+                  <small class="field-error" data-error-for="SMSCenter"></small>
+                  <small data-i18n="fieldSmsCenterHint">Пустое поле означает номер с SIM-карты.</small>
+                </div>
+              </div>
+
+              <div class="form-footer">
+                <span id="smsSettingsStatus" class="save-status"></span>
+                <button class="save-button" id="smsSettingsSave" type="submit" data-i18n="buttonSave">Сохранить</button>
+              </div>
+            </div>
+          </form>
+
+          <form id="smsForm" novalidate>
+            <div class="form-section">
+              <h2 data-hint="hintSmsSend"><span data-i18n="sectionSmsNew">Новое сообщение</span></h2>
+
+              <div class="field field--dns-mode">
+                <label for="smsPhone" data-i18n="fieldSmsPhone">Номер получателя</label>
+                <input class="control" id="smsPhone" type="tel" autocomplete="off" spellcheck="false" inputmode="tel" maxlength="21" placeholder="+70000000000">
+                <small class="field-error" data-error-for="phone"></small>
+                <small data-i18n="fieldSmsPhoneHint">Только цифры, знак «+» можно поставить в начале.</small>
+              </div>
+
+              <div class="field">
+                <label for="smsContent" data-i18n="fieldSmsContent">Текст сообщения</label>
+                <textarea class="control" id="smsContent" rows="4" maxlength="1530"></textarea>
+                <small class="field-note" id="smsCounter"></small>
+                <small class="field-error" data-error-for="content"></small>
+              </div>
+
+              <div class="form-footer">
+                <button class="secondary-button secondary-button--inline" id="smsSaveDraft" type="button" data-i18n="buttonSaveDraft">Сохранить черновик</button>
+                <span id="smsSendStatus" class="save-status"></span>
+                <button class="save-button" id="smsSend" type="submit" data-i18n="buttonSendSms">Отправить</button>
+              </div>
+            </div>
+          </form>
+        </section>
+
+        <section class="panel" id="panel-diagnostics" role="tabpanel" aria-labelledby="tab-diagnostics" hidden>
+          <h1 data-i18n="diagnosticsTitle">Диагностика</h1>
+          <p class="panel__intro" data-i18n="diagnosticsIntro">Подробные показатели мобильного соединения.</p>
+
+          <div class="form-section">
+            <h2 data-i18n="sectionSignal">Качество сигнала</h2>
+            <div class="metric-grid">
+              <div class="metric"><span class="metric__label" data-hint="hintSignalBars"><span data-i18n="metricSignalBars">Уровень</span></span><strong class="metric__value" data-metric="bars">— —</strong></div>
+              <div class="metric"><span class="metric__label" data-hint="hintRsrp"><span data-i18n="metricRsrp">RSRP</span></span><strong class="metric__value" data-metric="RSRP">— —</strong><small class="metric__hint" data-i18n="signalHintRsrp"></small></div>
+              <div class="metric"><span class="metric__label" data-hint="hintSinr"><span data-i18n="metricSinr">SINR</span></span><strong class="metric__value" data-metric="SINR">— —</strong><small class="metric__hint" data-i18n="signalHintSinr"></small></div>
+              <div class="metric"><span class="metric__label" data-hint="hintRssi"><span data-i18n="metricRssi">RSSI</span></span><strong class="metric__value" data-metric="RSSI">— —</strong></div>
+              <div class="metric"><span class="metric__label" data-hint="hintRsrq"><span data-i18n="metricRsrq">RSRQ</span></span><strong class="metric__value" data-metric="RSRQ">— —</strong></div>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <h2 data-i18n="sectionCell">Сота</h2>
+            <div class="detail-list">
+              <div class="detail-row"><span data-hint="hintCellId"><span data-i18n="metricCellId">Cell ID</span></span><strong data-metric="CellId">— —</strong></div>
+              <div class="detail-row"><span data-hint="hintLac"><span data-i18n="metricLac">LAC</span></span><strong data-metric="LAC">— —</strong></div>
+              <div class="detail-row"><span data-hint="hintEnbId"><span data-i18n="metricEnbId">eNB ID</span></span><strong data-metric="eNBID">— —</strong></div>
+              <div class="detail-row"><span data-hint="hintCgi"><span data-i18n="metricCgi">CGI</span></span><strong data-metric="CGI">— —</strong></div>
+              <div class="detail-row"><span data-hint="hintRncId"><span data-i18n="metricRncId">RNC ID</span></span><strong data-metric="RncId">— —</strong></div>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <h2 data-i18n="sectionRadio">Радиоканал</h2>
+            <div class="detail-list">
+              <div class="detail-row"><span data-hint="hintBand"><span data-i18n="metricBand">Диапазон</span></span><strong data-metric="Band">— —</strong></div>
+              <div class="detail-row"><span data-hint="hintDlChannel"><span data-i18n="metricDlChannel">Канал загрузки</span></span><strong data-metric="DL_channel">— —</strong></div>
+              <div class="detail-row"><span data-hint="hintUlChannel"><span data-i18n="metricUlChannel">Канал отдачи</span></span><strong data-metric="UL_channel">— —</strong></div>
+              <div class="detail-row"><span data-hint="hintCenterFreq"><span data-i18n="metricCenterFreq">Центральная частота</span></span><strong data-metric="CenterFreq">— —</strong></div>
+              <div class="detail-row"><span data-hint="hintTxPower"><span data-i18n="metricTxPower">Мощность передатчика</span></span><strong data-metric="TxPWR">— —</strong></div>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <h2 data-i18n="sectionOperator">Оператор</h2>
+            <div class="detail-list">
+              <div class="detail-row"><span data-hint="hintOperator"><span data-i18n="metricPlmn">Оператор</span></span><strong data-metric="operator">— —</strong></div>
+              <div class="detail-row"><span data-hint="hintNetworkType"><span data-i18n="metricNetworkType">Тип сети</span></span><strong data-metric="networkType">— —</strong></div>
+              <div class="detail-row"><span data-hint="hintMcc"><span data-i18n="metricMcc">MCC</span></span><strong data-metric="mcc">— —</strong></div>
+              <div class="detail-row"><span data-hint="hintMnc"><span data-i18n="metricMnc">MNC</span></span><strong data-metric="mnc">— —</strong></div>
+            </div>
+          </div>
+
+          <div class="form-footer form-footer--tools">
+            <span class="auto-refresh">
+              <label for="diagnosticsInterval" data-i18n="autoRefresh">Автообновление</label>
+              <span class="select-control select-control--compact">
+                <select id="diagnosticsInterval" data-auto-refresh></select>
+              </span>
+            </span>
+            <span id="diagnosticsStatus" class="save-status"></span>
+            <button class="save-button" id="diagnosticsRefresh" type="button" data-i18n="buttonRefresh">Обновить</button>
+          </div>
+        </section>
+
+        <section class="panel" id="panel-log" role="tabpanel" aria-labelledby="tab-log" hidden>
+          <h1 data-i18n="logTitle">Системный журнал</h1>
+          <p class="panel__intro" data-i18n="logIntro">События роутера.</p>
+
+          <div class="form-section">
+            <h2 data-hint="hintLog"><span data-i18n="logTitle">Системный журнал</span></h2>
+            <p class="section-hint" id="logCount"></p>
+
+            <div class="log-list" id="logList"></div>
+            <p class="empty-note" id="logEmpty" data-i18n="logEmpty" hidden>Записей нет.</p>
+
+            <div class="sms-pager" id="logPager" hidden>
+              <button class="secondary-button" id="logPrev" type="button" data-i18n="buttonPrevPage">Назад</button>
+              <span class="sms-pager__label" id="logPageLabel"></span>
+              <button class="secondary-button" id="logNext" type="button" data-i18n="buttonNextPage">Вперёд</button>
+            </div>
+
+            <div class="form-footer form-footer--tools">
+              <button class="secondary-button secondary-button--inline" id="logDownload" type="button" data-i18n="buttonDownloadLog">Скачать журнал</button>
+              <span id="logStatus" class="save-status"></span>
+              <button class="save-button" id="logRefresh" type="button" data-i18n="buttonRefresh">Обновить</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel" id="panel-maintenance" role="tabpanel" aria-labelledby="tab-maintenance" hidden>
+          <h1 data-i18n="maintenanceTitle">Обслуживание</h1>
+          <p class="panel__intro" data-i18n="maintenanceIntro">Сведения об устройстве и обслуживание роутера.</p>
+
+          <div class="form-section">
+            <h2 data-i18n="sectionDeviceInfo">Устройство</h2>
+            <div class="detail-list">
+              <div class="detail-row"><span data-i18n="infoModel">Модель</span><strong data-info="Model">— —</strong></div>
+              <div class="detail-row"><span data-i18n="infoDeviceName">Имя устройства</span><strong data-info="DeviceName">— —</strong></div>
+              <div class="detail-row"><span data-i18n="infoFirmware">Версия прошивки</span><strong data-info="firmware">— —</strong></div>
+              <div class="detail-row"><span data-i18n="infoHardware">Версия оборудования</span><strong data-info="HwVersion">— —</strong></div>
+              <div class="detail-row"><span data-i18n="infoBootloader">Загрузчик</span><strong data-info="BootloaderVersion">— —</strong></div>
+              <div class="detail-row"><span data-i18n="infoWebUi">Версия веб-интерфейса</span><strong data-info="webUi">— —</strong></div>
+              <div class="detail-row"><span data-i18n="infoBuildDate">Дата сборки</span><strong data-info="FWBuildDate">— —</strong></div>
+            </div>
+          </div>
+
+          <form id="powerSavingForm" novalidate>
+            <div class="form-section">
+              <h2 data-hint="hintPowerSaving"><span data-i18n="sectionPowerSaving">Энергосбережение</span></h2>
+              <p class="section-hint" data-i18n="powerSavingIntro">Три признака, которыми роутер бережёт батарею. Точное поведение каждого прошивка не поясняет, запись на устройстве не проверялась.</p>
+
+              <div class="switch-row">
+                <span class="switch-row__copy">
+                  <strong data-hint="hintPowerSmart"><span data-i18n="fieldPowerSmart">Умный режим</span></strong>
+                  <small data-i18n="fieldPowerSmartHint">Общий режим экономии: роутер сам решает, что приглушить при простое.</small>
+                </span>
+                <label class="switch" for="powerSmart">
+                  <input id="powerSmart" type="checkbox">
+                  <span class="switch__track"><span></span></span>
+                </label>
+              </div>
+
+              <div class="switch-row">
+                <span class="switch-row__copy">
+                  <strong data-hint="hintPowerWifi"><span data-i18n="fieldPowerWifi">Экономия Wi-Fi</span></strong>
+                  <small data-i18n="fieldPowerWifiHint">Режим энергосбережения радиомодуля. Может немного увеличивать задержки.</small>
+                </span>
+                <label class="switch" for="powerWifi">
+                  <input id="powerWifi" type="checkbox">
+                  <span class="switch__track"><span></span></span>
+                </label>
+              </div>
+
+              <div class="switch-row">
+                <span class="switch-row__copy">
+                  <strong data-hint="hintPowerAutoOff"><span data-i18n="fieldPowerAutoOff">Отключать соединение при простое</span></strong>
+                  <small data-i18n="fieldPowerAutoOffHint">Роутер разрывает подключение к сети оператора, когда трафика нет. Задержку задаёт прошивка.</small>
+                </span>
+                <label class="switch" for="powerAutoOff">
+                  <input id="powerAutoOff" type="checkbox">
+                  <span class="switch__track"><span></span></span>
+                </label>
+              </div>
+
+              <div class="form-footer">
+                <span id="powerSavingStatus" class="save-status"></span>
+                <button class="save-button" id="powerSavingSave" type="submit" data-i18n="buttonSave">Сохранить</button>
+              </div>
+            </div>
+          </form>
+
+          <form id="updateSettingsForm" novalidate>
+            <div class="form-section">
+              <h2 data-hint="hintFirmwareUpdate"><span data-i18n="sectionFirmwareUpdate">Обновление прошивки</span></h2>
+
+              <div class="detail-list">
+                <div class="detail-row"><span data-i18n="updateStateLabel">Состояние</span><strong id="updateState">— —</strong></div>
+                <div class="detail-row" id="updateVersionRow" hidden><span data-i18n="updateNewVersion">Новая версия</span><strong id="updateVersion">— —</strong></div>
+                <div class="detail-row" id="updateSizeRow" hidden><span data-i18n="updateSize">Размер</span><strong id="updateSize">— —</strong></div>
+              </div>
+
+              <div class="progress-bar" id="updateBar" hidden>
+                <span class="progress-bar__fill" id="updateBarFill"></span>
+              </div>
+              <p class="section-hint" id="updateProgress" hidden></p>
+              <p class="section-hint section-hint--warning" id="updateBatteryNote" hidden></p>
+
+              <div class="action-row">
+                <span class="action-row__copy">
+                  <strong data-hint="hintUpdateCheck"><span data-i18n="updateCheckTitle">Проверить обновления</span></strong>
+                  <small data-i18n="updateCheckHint">Роутер спросит сервер оператора. Для проверки нужно активное подключение к интернету.</small>
+                </span>
+                <button class="secondary-button secondary-button--inline" id="updateCheck" type="button" data-i18n="updateCheckApply">Проверить</button>
+              </div>
+
+              <div class="action-row" id="updateDownloadRow" hidden>
+                <span class="action-row__copy">
+                  <strong data-i18n="updateDownloadTitle">Скачать обновление</strong>
+                  <small data-i18n="updateDownloadHint">Файл скачается в память роутера; трафик считается оператором как обычный.</small>
+                </span>
+                <button class="secondary-button secondary-button--inline" id="updateStop" type="button" hidden data-i18n="updateStopApply">Остановить</button>
+                <button class="secondary-button secondary-button--inline" id="updateDownload" type="button" data-i18n="updateDownloadApply">Скачать</button>
+              </div>
+
+              <div class="action-row action-row--danger" id="updateInstallRow" hidden>
+                <span class="action-row__copy">
+                  <strong data-hint="hintUpdateInstall">
+                    <span data-i18n="updateInstallTitle">Установить обновление</span>
+                    <span class="danger-badge" data-i18n="dangerBadge">Опасный параметр</span>
+                  </strong>
+                  <small data-i18n="updateInstallHint">Установка занимает около десяти минут, роутер перезагрузится сам. Не отключайте питание: это может вывести устройство из строя.</small>
+                </span>
+                <button class="lock-button" type="button" data-unlock-for="updateInstall" data-warning="unlockConfirmUpdateInstall"></button>
+                <button class="danger-button" id="updateInstall" type="button" disabled data-i18n="updateInstallApply">Установить</button>
+              </div>
+
+              <div class="switch-row" id="updateAutoRow">
+                <span class="switch-row__copy">
+                  <strong data-hint="hintUpdateAuto"><span data-i18n="updateAutoCheck">Проверять обновления самостоятельно</span></strong>
+                  <small data-i18n="updateAutoCheckHint">Роутер будет сам обращаться к серверу оператора. Период проверки задаётся его прошивкой и панелью не меняется.</small>
+                </span>
+                <label class="switch" for="updateAutoSwitch">
+                  <input id="updateAutoSwitch" type="checkbox">
+                  <span class="switch__track"><span></span></span>
+                </label>
+              </div>
+
+              <div class="form-footer">
+                <span id="updateStatus" class="save-status"></span>
+                <button class="save-button" id="updateSettingsSave" type="submit" data-i18n="buttonSave">Сохранить</button>
+              </div>
+            </div>
+          </form>
+
+          <div class="form-section">
+            <h2 data-hint="hintBackup"><span data-i18n="sectionBackup">Резервная копия настроек</span></h2>
+            <p class="section-hint section-hint--warning" data-i18n="backupWarning">В копии лежат пароли Wi-Fi, данные входа и IMSI абонента — храните файл в закрытом месте.</p>
+
+            <div class="action-row">
+              <span class="action-row__copy">
+                <strong data-i18n="backupSaveTitle">Сохранить настройки в файл</strong>
+                <small data-i18n="backupSaveHint">Роутер соберёт копию и отдаст её файлом. Сами настройки при этом не меняются.</small>
+              </span>
+              <button class="secondary-button secondary-button--inline" id="backupSave" type="button" data-i18n="backupSaveApply">Сохранить копию</button>
+            </div>
+
+            <div class="action-row">
+              <span class="action-row__copy">
+                <strong data-hint="hintBackupInspect"><span data-i18n="backupInspectTitle">Показать, что внутри</span></strong>
+                <small data-i18n="backupInspectHint">Панель расшифрует копию ключом, выведенным из IMEI, и покажет список файлов. Их содержимое не показывается.</small>
+              </span>
+              <button class="secondary-button secondary-button--inline" id="backupInspect" type="button" disabled data-i18n="backupInspectApply">Показать</button>
+            </div>
+
+            <div class="detail-list" id="backupList" hidden></div>
+
+            <div class="action-row action-row--danger">
+              <span class="action-row__copy">
+                <strong data-hint="hintRestore">
+                  <span data-i18n="restoreTitle">Восстановить настройки из копии</span>
+                  <span class="danger-badge" data-i18n="dangerBadge">Опасный параметр</span>
+                </strong>
+                <small data-i18n="restoreHint">Все текущие настройки роутера будут заменены содержимым файла, включая имя и пароль Wi-Fi и пароль входа. Роутер перезагрузится сам.</small>
+              </span>
+              <button class="lock-button" type="button" data-unlock-for="restoreFile" data-unlock-also="restoreApply" data-warning="unlockConfirmRestore"></button>
+              <button class="danger-button" id="restoreApply" type="button" disabled data-i18n="restoreApply">Восстановить</button>
+            </div>
+
+            <div class="field">
+              <label for="restoreFile" data-i18n="restoreFileLabel">Файл копии</label>
+              <input class="control" id="restoreFile" type="file" accept=".bin,application/octet-stream" disabled>
+              <small class="field-error" data-error-for="restoreFile"></small>
+              <small data-i18n="restoreFileHint">Панель сперва проверит, что файл — копия именно этого роутера: расшифрует его ключом из IMEI и убедится, что внутри архив настроек.</small>
+            </div>
+
+            <span id="backupStatus" class="save-status"></span>
+          </div>
+
+          <form id="storageForm" novalidate>
+            <div class="form-section">
+              <h2 data-hint="hintStorage"><span data-i18n="sectionStorage">Накопитель</span></h2>
+              <p class="section-hint" data-i18n="storageIntro">Состояние карты памяти и USB. Общий доступ роутер включает своими переключателями, но служб Samba и FTP в прошивке этой модели нет — включение может ничего не дать.</p>
+
+              <div class="detail-list">
+                <div class="detail-row"><span data-i18n="storageCard">Карта памяти</span><strong id="storageCard">— —</strong></div>
+                <div class="detail-row"><span data-i18n="storageUsb">USB-накопитель</span><strong id="storageUsb">— —</strong></div>
+                <div class="detail-row"><span data-i18n="storageSpace">Занято из общего</span><strong id="storageSpace">— —</strong></div>
+                <div class="detail-row"><span data-i18n="storageFiles">Файлов в корне</span><strong id="storageFiles">— —</strong></div>
+              </div>
+
+              <div class="switch-row">
+                <span class="switch-row__copy">
+                  <strong data-hint="hintSamba"><span data-i18n="fieldSamba">Общий доступ по сети (Samba)</span></strong>
+                  <small data-i18n="fieldSambaHint">Доступ к накопителю из локальной сети по протоколу общих папок.</small>
+                </span>
+                <label class="switch" for="storageSamba">
+                  <input id="storageSamba" type="checkbox">
+                  <span class="switch__track"><span></span></span>
+                </label>
+              </div>
+
+              <div class="switch-row">
+                <span class="switch-row__copy">
+                  <strong data-hint="hintFtp"><span data-i18n="fieldFtp">Доступ по FTP</span></strong>
+                  <small data-i18n="fieldFtpHint">Доступ к накопителю по протоколу передачи файлов.</small>
+                </span>
+                <label class="switch" for="storageFtp">
+                  <input id="storageFtp" type="checkbox">
+                  <span class="switch__track"><span></span></span>
+                </label>
+              </div>
+
+              <div class="form-footer">
+                <span id="storageStatus" class="save-status"></span>
+                <button class="save-button" id="storageSave" type="submit" data-i18n="buttonSave">Сохранить</button>
+              </div>
+            </div>
+          </form>
+
+          <div class="form-section">
+            <h2 data-hint="hintIdentifiers"><span data-i18n="sectionIdentifiers">Идентификаторы</span></h2>
+            <p class="section-hint" id="identifiersHint">Идентификаторы скрыты, чтобы не попадать в снимки экрана.</p>
+            <div class="detail-list">
+              <div class="detail-row"><span data-i18n="infoImei">IMEI</span><strong data-info="IMEI" data-secret="1">— —</strong></div>
+              <div class="detail-row"><span data-i18n="infoImsi">IMSI</span><strong data-info="IMSI" data-secret="1">— —</strong></div>
+              <div class="detail-row"><span data-i18n="infoIccid">ICCID SIM-карты</span><strong data-info="UICCID" data-secret="1">— —</strong></div>
+              <div class="detail-row"><span data-i18n="infoMsisdn">Номер телефона</span><strong data-info="msisdn" data-secret="1">— —</strong></div>
+              <div class="detail-row"><span data-i18n="infoMac">MAC-адрес</span><strong data-info="MacAddress" data-secret="1">— —</strong></div>
+            </div>
+            <div class="form-footer form-footer--tools">
+              <button class="secondary-button secondary-button--inline" id="toggleIdentifiers" type="button" aria-pressed="false" data-i18n="buttonShowIdentifiers">Показать</button>
+              <span id="maintenanceStatus" class="save-status"></span>
+              <button class="save-button" id="maintenanceRefresh" type="button" data-i18n="buttonRefresh">Обновить</button>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <h2 data-hint="hintPassword"><span data-i18n="sectionPassword">Пароль веб-интерфейса</span></h2>
+            <form id="passwordForm" novalidate>
+              <div class="field">
+                <label for="currentPassword" data-i18n="fieldCurrentPassword">Текущий пароль</label>
+                <span class="password-control">
+                  <input class="control" id="currentPassword" type="password" autocomplete="off">
+                  <button class="reveal-button" type="button" data-reveal-for="currentPassword" aria-pressed="false"></button>
+                </span>
+              </div>
+              <div class="form-grid">
+                <div class="field">
+                  <label for="newPassword" data-i18n="fieldNewPassword">Новый пароль</label>
+                  <span class="password-control">
+                    <input class="control" id="newPassword" type="password" autocomplete="off">
+                    <button class="reveal-button" type="button" data-reveal-for="newPassword" aria-pressed="false"></button>
+                  </span>
+                </div>
+                <div class="field">
+                  <label for="confirmPassword" data-i18n="fieldConfirmPassword">Повторите новый пароль</label>
+                  <span class="password-control">
+                    <input class="control" id="confirmPassword" type="password" autocomplete="off">
+                    <button class="reveal-button" type="button" data-reveal-for="confirmPassword" aria-pressed="false"></button>
+                  </span>
+                </div>
+              </div>
+              <div class="form-footer">
+                <span id="passwordStatus" class="save-status"></span>
+                <button class="save-button" id="changePasswordButton" type="submit" data-i18n="buttonChangePassword">Сменить пароль</button>
+              </div>
+            </form>
+          </div>
+
+          <div class="form-section">
+            <h2 data-i18n="sectionPower">Питание и сброс</h2>
+
+            <div class="action-row">
+              <span class="action-row__copy">
+                <strong data-hint="hintReboot"><span data-i18n="buttonReboot">Перезагрузить роутер</span></strong>
+                <small data-i18n="rebootHint">Роутер перезапустится, связь прервётся примерно на минуту.</small>
+              </span>
+              <button class="secondary-button secondary-button--inline" id="rebootButton" type="button" data-i18n="rebootApply">Перезагрузить</button>
+            </div>
+
+            <div class="action-row action-row--danger">
+              <span class="action-row__copy">
+                <strong data-hint="hintPowerOff">
+                  <span data-i18n="buttonPowerOff">Выключить роутер</span>
+                  <span class="danger-badge" data-i18n="dangerBadge">Опасный параметр</span>
+                </strong>
+                <small data-i18n="powerOffHint">Роутер погаснет, и включить его снова получится только кнопкой на корпусе.</small>
+              </span>
+              <button class="lock-button" type="button" data-unlock-for="powerOffButton" data-warning="unlockConfirmPowerOff"></button>
+              <button class="danger-button" id="powerOffButton" type="button" disabled data-i18n="powerOffApply">Выключить</button>
+            </div>
+
+            <div class="action-row action-row--danger">
+              <span class="action-row__copy">
+                <strong data-hint="hintReset">
+                  <span data-i18n="buttonReset">Сбросить к заводским настройкам</span>
+                  <span class="danger-badge" data-i18n="dangerBadge">Опасный параметр</span>
+                </strong>
+                <small data-i18n="resetHint">Будут стёрты все настройки.</small>
+              </span>
+              <button class="lock-button" type="button" data-unlock-for="resetButton" data-warning="hintReset"></button>
+              <button class="danger-button" id="resetButton" type="button" disabled data-i18n="resetApply">Сбросить</button>
+            </div>
+
+            <span id="powerStatus" class="save-status"></span>
+          </div>
+        </section>
+
+        <!-- О расширении -->
+        <section class="panel" id="panel-about" role="tabpanel" aria-labelledby="tab-about" hidden>
+          <h1 data-i18n="aboutTitle">О расширении</h1>
+          <p class="panel__intro" data-i18n="aboutIntro">Неофициальная панель управления мобильным роутером Alcatel EE71. Данные читаются и записываются напрямую в роутер по локальной сети и никуда больше не передаются.</p>
+
+          <div class="notice notice--danger">
+            <span class="notice__text">
+              <strong data-i18n="riskTitle">Всё, что делается панелью, — на ваш страх и риск</strong>
+              <span data-i18n="riskFull">Панель меняет настройки роутера напрямую, включая скрытые в его штатном веб-интерфейсе, и часть из них способна оставить устройство без связи или потребовать сброса к заводским настройкам. Работоспособность всех возможностей на живом роутере не проверена: часть собрана по разбору прошивки, и поведение может отличаться на другой её версии. Автор не несёт ответственности за любые последствия — потерю связи, потерю данных, испорченные настройки, неработающий роутер или расходы у оператора. Программа поставляется как есть, без каких-либо гарантий.</span>
+            </span>
+          </div>
+
+          <div class="form-section">
+            <h2 data-i18n="aboutSectionDetails">Сведения</h2>
+            <div class="detail-list">
+              <div class="detail-row"><span data-i18n="aboutFieldName">Название</span><strong data-i18n="appName">EE71 Панель</strong></div>
+              <div class="detail-row"><span data-i18n="aboutFieldVersion">Версия</span><strong id="aboutVersion">— —</strong></div>
+              <div class="detail-row"><span data-i18n="aboutFieldAuthor">Автор</span><strong><a class="link" href="https://github.com/antiefa" target="_blank" rel="noopener noreferrer">antiefa</a></strong></div>
+              <div class="detail-row"><span data-i18n="aboutFieldLicense">Лицензия</span><strong><a class="link" href="https://github.com/antiefa/EE71-Admin/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">MIT</a></strong></div>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <h2 data-i18n="aboutSectionLinks">Ссылки</h2>
+            <div class="detail-list">
+              <div class="detail-row"><span data-i18n="aboutLinkSource">Исходный код</span><strong><a class="link" href="https://github.com/antiefa/EE71-Admin" target="_blank" rel="noopener noreferrer">github.com/antiefa/EE71-Admin</a></strong></div>
+              <div class="detail-row"><span data-i18n="aboutLinkPrivacy">Политика приватности</span><strong><a class="link" href="https://github.com/antiefa/EE71-Admin/blob/main/PRIVACY.md" target="_blank" rel="noopener noreferrer">PRIVACY.md</a></strong></div>
+              <div class="detail-row"><span data-i18n="aboutLinkIssues">Сообщить о проблеме</span><strong><a class="link" href="https://github.com/antiefa/EE71-Admin/issues" target="_blank" rel="noopener noreferrer" data-i18n="aboutLinkIssuesValue">Issues на GitHub</a></strong></div>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <h2 data-i18n="aboutSectionHow">Как панель работает с роутером</h2>
+            <p class="about-text" data-i18n="aboutHowBody">Панель обращается к недокументированному интерфейсу JSON-RPC роутера по адресу /jrd/webapi. Вход выполняется штатным механизмом веб-интерфейса: пароль преобразуется PBKDF2 с солью, которую выдаёт сам роутер, а маркер сессии живёт только в открытой вкладке и нигде не сохраняется. Аналитики, рекламы и обращений к сторонним серверам нет: браузер соединяется лишь с адресом роутера, на который вы сами выдали разрешение.</p>
+          </div>
+
+          <div class="form-section">
+            <h2 data-i18n="aboutSectionTested">Что проверено на устройстве</h2>
+            <p class="about-text" data-i18n="aboutTestedBody">Разделы собраны по разбору прошивки роутера и подтверждены живыми пробами чтения. Записывающие действия проверены не все, поэтому на отдельных настройках возможен отказ роутера или неожиданный результат. Прежде чем менять важные параметры, сохраните резервную копию настроек в разделе «Обслуживание».</p>
+          </div>
+
+          <p class="about-footer">
+            <span data-i18n="aboutAffiliation">Проект не связан с Alcatel, TCL или оператором связи. Совместимость зависит от версии прошивки роутера.</span>
+            <span class="about-footer__copy">© 2026 <a class="link" href="https://github.com/antiefa" target="_blank" rel="noopener noreferrer">antiefa</a> · <a class="link" href="https://github.com/antiefa/EE71-Admin/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">MIT License</a></span>
+          </p>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <div class="app-loader" id="appLoader" hidden>
+    <span class="app-loader__spinner" aria-hidden="true"></span>
+    <span class="app-loader__text" data-i18n="loadingData">Загрузка данных…</span>
+  </div>
+
+  <template id="noticeIconTemplate">
+    <svg class="notice__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 9v5"></path><path d="M12 17.5v.01"></path><path d="M10.3 3.9 2.6 17a2 2 0 0 0 1.7 3h15.4a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"></path></svg>
+  </template>
+
+  <template id="chipTemplate">
+    <span class="chip">
+      <span class="chip__text"></span>
+      <button class="chip__remove" type="button" aria-label="delete">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg>
+      </button>
+    </span>
+  </template>
+
+  <template id="ruleRowTemplate">
+    <div class="rule-row">
+      <span class="rule-row__text"></span>
+      <button class="secondary-button secondary-button--inline rule-row__remove" type="button"></button>
+    </div>
+  </template>
+
+  <template id="profileRowTemplate">
+    <div class="profile-row">
+      <span class="profile-row__main">
+        <strong class="profile-row__name"></strong>
+        <span class="profile-row__badge profile-row__badge--default" hidden></span>
+        <span class="profile-row__badge profile-row__badge--preset" hidden></span>
+        <small class="profile-row__meta"></small>
+      </span>
+      <span class="profile-row__actions">
+        <button class="secondary-button secondary-button--inline" type="button" data-profile-action="default"></button>
+        <button class="secondary-button secondary-button--inline" type="button" data-profile-action="edit"></button>
+        <button class="secondary-button secondary-button--inline" type="button" data-profile-action="delete"></button>
+      </span>
+    </div>
+  </template>
+
+  <template id="donutTemplate">
+    <figure class="donut">
+      <svg class="donut__chart" viewBox="0 0 42 42" role="img" aria-hidden="true">
+        <circle class="donut__ring" cx="21" cy="21" r="15.9155" fill="none" stroke-width="4"></circle>
+        <circle class="donut__slice donut__slice--down" cx="21" cy="21" r="15.9155" fill="none" stroke-width="4" stroke-dasharray="0 100" stroke-dashoffset="25"></circle>
+        <circle class="donut__slice donut__slice--up" cx="21" cy="21" r="15.9155" fill="none" stroke-width="4" stroke-dasharray="0 100" stroke-dashoffset="25"></circle>
+        <text class="donut__total" x="21" y="22.6" text-anchor="middle"></text>
+      </svg>
+      <figcaption class="donut__caption">
+        <strong class="donut__title"></strong>
+        <span class="donut__legend donut__legend--down"></span>
+        <span class="donut__legend donut__legend--up"></span>
+        <small class="donut__note"></small>
+      </figcaption>
+    </figure>
+  </template>
+
+  <template id="logRowTemplate">
+    <div class="log-row">
+      <span class="log-row__time"></span>
+      <span class="log-row__event"></span>
+    </div>
+  </template>
+
+  <template id="smsRowTemplate">
+    <label class="sms-row">
+      <input class="sms-row__check" type="checkbox">
+      <span class="sms-row__body">
+        <span class="sms-row__head">
+          <span class="sms-row__phone"></span>
+          <span class="sms-row__badge" hidden></span>
+          <span class="sms-row__slots" hidden></span>
+          <span class="sms-row__time"></span>
+        </span>
+        <span class="sms-row__text"></span>
+        <button class="secondary-button secondary-button--inline sms-row__edit" type="button" hidden></button>
+      </span>
+    </label>
+  </template>
+
+  <template id="deviceRowTemplate">
+    <div class="device-row">
+      <span class="device-row__main">
+        <span class="device-row__name"></span>
+        <span class="device-row__meta"></span>
+      </span>
+      <span class="device-row__rights">
+        <label class="device-right"><input type="checkbox" data-right="internet"><span></span></label>
+        <label class="device-right"><input type="checkbox" data-right="storage"><span></span></label>
+      </span>
+      <span class="device-row__actions">
+        <button class="secondary-button device-row__rename" type="button"></button>
+        <button class="secondary-button device-row__block" type="button"></button>
+      </span>
+    </div>
+  </template>
+
+  <template id="operatorRowTemplate">
+    <div class="operator-row">
+      <span class="operator-row__name"></span>
+      <span class="operator-row__type"></span>
+      <span class="operator-row__state"></span>
+      <button class="secondary-button operator-row__action" type="button"></button>
+    </div>
+  </template>
+
+  <template id="revealIconsTemplate">
+    <svg class="reveal-button__show" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" hidden><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"></path><circle cx="12" cy="12" r="2.6"></circle></svg>
+    <svg class="reveal-button__hide" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"></path><circle cx="12" cy="12" r="2.6"></circle><path d="m4 4 16 16"></path></svg>
+  </template>
+
+  <template id="lockIconTemplate">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="10" rx="2"></rect><path d="M8 10V7a4 4 0 0 1 8 0v3"></path></svg>
+    <span></span>
+  </template>
+
+  <template id="hintIconTemplate">
+    <svg class="hint__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M9.1 9.3a3 3 0 0 1 5.9.7c0 2-3 2.5-3 4.4"></path>
+      <circle cx="12" cy="18.2" r=".9" fill="currentColor" stroke="none"></circle>
+    </svg>
+  </template>
+
+  <dialog class="confirm" id="confirmDialog">
+    <h2 id="confirmTitle">Применить настройки сети?</h2>
+    <p id="confirmBody"></p>
+    <div id="confirmExtra" class="confirm__extra" hidden>
+      <strong id="confirmExtraTitle"></strong>
+      <ul id="confirmList"></ul>
+    </div>
+    <div class="confirm__actions">
+      <button class="secondary-button" id="confirmCancel" type="button" data-i18n="confirmCancel">Отмена</button>
+      <button class="secondary-button confirm__discard" id="confirmDiscard" type="button" hidden>Не сохранять</button>
+      <button class="save-button" id="confirmApply" type="button">Применить</button>
+    </div>
+  </dialog>
+
+  <dialog class="confirm" id="consentDialog">
+    <h2 data-i18n="consentTitle">Прежде чем продолжить</h2>
+    <p data-i18n="consentBody">EE71 Панель напрямую меняет настройки роутера, включая скрытые в его штатном интерфейсе. Часть возможностей собрана по разбору прошивки и на живом устройстве не проверялась, а ошибочная настройка способна оставить роутер без связи и потребовать сброса к заводским. Автор не несёт ответственности за последствия: вы действуете на свой страх и риск.</p>
+    <div class="confirm__actions confirm__actions--single">
+      <button class="save-button" id="consentAccept" type="button" data-i18n="consentAccept">Понимаю риск, продолжить</button>
+    </div>
+  </dialog>
+
+  <script src="common.js"></script>
+  <script src="i18n.js"></script>
+  <script src="api.js"></script>
+  <script src="panel.js"></script>
+</body>
+</html>

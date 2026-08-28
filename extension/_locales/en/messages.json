@@ -1,0 +1,8 @@
+{
+  "extensionName": {
+    "message": "EE71 Admin"
+  },
+  "extensionDescription": {
+    "message": "Unofficial control panel for the Alcatel EE71 router, including settings its stock web interface hides. Use at your own risk."
+  }
+}
