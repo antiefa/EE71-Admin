@@ -18,7 +18,7 @@ The panel writes router settings directly, including those hidden in the stock w
 
 ## Features in 0.1.0
 
-- sign-in with the router web interface account, with an option to reveal the typed password;
+- sign-in with the router web interface account;
 - status overview: battery, mobile network and its type, signal strength, connection, Wi‑Fi client count, roaming;
 - **Mobile network**: current connection summary, connect and disconnect, allowed network generations (including the 2G-only and 3G-only modes hidden in the stock interface), operator selection, data roaming, IP protocol version and idle disconnect;
 - **Traffic**: used volume with a plan progress bar, two donut charts for the current session (home network and roaming), roaming usage, connected time in words and hours, the next billing date; monthly plan setup (volume and unit, start day), auto-disconnect on reaching the limit, connection time limit and protected counter reset;

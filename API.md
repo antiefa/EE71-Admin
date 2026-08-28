@@ -12,7 +12,7 @@
 
 Пометки надёжности:
 
-- **Подтверждено** — проверено на реальном роутере в ходе работы над панелью.
+- **Подтверждено** — проверено на реальном роутере.
 - **Проверено живой пробой** — метод отвечает на устройстве; запись не проверялась.
 - **Из прошивки** — значения взяты из веб-интерфейса, на устройстве не проверялись.
 - **Отсутствует в роутере** — живая проба вернула `-32700 Parse error`. Метода у этой прошивки нет, даже если веб-сборка его вызывает.
@@ -295,7 +295,7 @@ TConnTimes, CurrConnTimes,
 MonthlyPlan, NextCycleDate, RemainingDays
 ```
 
-Это **накопительные счётчики**, а не история по времени. Согласовано с пользователем: график расхода не строится, поскольку штатного способа получить историю у роутера нет. Методы `GetLanStatistics` и `GetWlanStatistics` возвращают `{List: []}`, образцов элементов в прошивке нет, и веб-интерфейсом они не вызываются. Истории расхода по дням или часам роутер не предоставляет: график можно построить только из точек, собранных самой панелью.
+Это **накопительные счётчики**, а не история по времени. График расхода по времени построить не из чего: штатного способа получить историю у роутера нет. Методы `GetLanStatistics` и `GetWlanStatistics` возвращают `{List: []}`, образцов элементов в прошивке нет, и веб-интерфейсом они не вызываются. Истории расхода по дням или часам роутер не предоставляет: график можно построить только из точек, собранных самой панелью.
 
 ### GetUsageSettings / SetUsageSettings — из прошивки, запись только в мобильной версии
 
@@ -402,7 +402,7 @@ MonthlyPlan, NextCycleDate, RemainingDays
 
 ### USSD — чтение проверено живой пробой
 
-Прежнее утверждение «метода отправки нет» **неверно**. В прошивке есть все три метода — `SendUSSD` (модуль 3, действие 9), `GetUSSDSendResult` (действие 2), `SetUSSDEnd` (действие 10), — и `GetFeatureList` объявляет их отдельной группой `USSD`.
+В прошивке есть все три метода — `SendUSSD` (модуль 3, действие 9), `GetUSSDSendResult` (действие 2), `SetUSSDEnd` (действие 10), — и `GetFeatureList` объявляет их отдельной группой `USSD`.
 
 `GetUSSDSendResult` на устройстве отвечает `{SendState: 0, UssdType: 0, UssdContent: "", UssdContentLen: 0}`.
 
@@ -420,7 +420,7 @@ MonthlyPlan, NextCycleDate, RemainingDays
 
 Что означают поля, видно по внутренним именам `core_app`: `smart_mode` (роутер проверяет значение сам — «Invalid smart_mode: %d»), режим `power_save` беспроводного интерфейса (`iw dev wlan0 set power_save on|off`) и `conn_off_switch` с таймерами `jrd_wifi_power_set_conn_off_time` и `jrd_wifi_power_set_wifi_off`. Перечень допустимых значений прошивка не раскрывает; наблюдались только `0` и `1`.
 
-Прежнее утверждение, что `SetPowerSavingMode` не найден, верно только для веб-сборок: метод есть и в прошивке, и в перечне `GetFeatureList`.
+`SetPowerSavingMode` не вызывает ни одна веб-сборка, но у роутера он есть: метод виден и в прошивке, и в перечне `GetFeatureList`.
 
 ## Накопитель и общий доступ — чтение проверено живой пробой
 
@@ -518,7 +518,6 @@ MonthlyPlan, NextCycleDate, RemainingDays
 | USSD | `SendUSSD`, `GetUSSDSendResult`, `SetUSSDEnd` | **не в панели**: чтение проверено, параметры отправки неизвестны |
 | Проверка связи | `SendPingURL` | **снято**: роутер отвечает отказом на любые параметры |
 | Wi-Fi: `SetWlanOff`, `SetWlanOn`, `ResetWlanSetting` | — | **не подключены**: выключение диапазона уже есть в настройках, сброс Wi-Fi объявлен только `GetFeatureList` |
-| Отложено пользователем | SSH | — |
 
 **Чего у этой прошивки нет** — живая проба вернула `-32700` (веб-сборка их вызывает, потому что она общая для нескольких моделей):
 
@@ -535,7 +534,7 @@ MonthlyPlan, NextCycleDate, RemainingDays
 Оговорки:
 
 - **имена методов чувствительны к регистру, и часть из них начинается со строчной буквы**: `getIPFilterList`, `getUrlFilterSettings`, `getCurrentProfile`, `setCurrentProfile`, `getSMSAutoRedirectSetting`, `setSMSAutoRedirectSetting`, `getSmsInitState`, `getPortFwding`. Выборки по образцу `"Get…"` их пропускают;
-- поэтому прежнее утверждение, будто у `SetIPFilter` и `SetUrlFilterSettings` нет парного чтения, **неверно**: списки читаются методами `getIPFilterList` (обе сборки) и `getUrlFilterSettings` (мобильная);
+- парное чтение у `SetIPFilter` и `SetUrlFilterSettings` есть: списки читаются методами `getIPFilterList` (обе сборки) и `getUrlFilterSettings` (мобильная), а выборка по образцу `"Get…"` их не находит;
 - `SetPowerSavingMode` не вызывает ни одна сборка, **но у роутера он есть** — это видно и в прошивке, и в перечне `GetFeatureList`;
 - `GetCallLogList`, `GetCallLogCountInfo`, `DeleteCallLog` относятся к голосовым функциям, которых у EE71 нет;
 - режим повторителя (`GetHotspotList`, `ConnectHotspot`, `GetWIFIExtenderSettings`) отключён конфигурацией модели: `pageConfig.isSupportInternetWifiExtender = false`.
