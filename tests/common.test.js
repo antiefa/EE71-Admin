@@ -510,9 +510,13 @@ await test("вторичная кнопка не прижимается авто
 await test("параметры мобильной сети проверяются и разделяются по методам", () => {
   const { validateMobileSettings, buildMobilePayloads } = globalThis.EE71;
 
-  const good = { NetworkMode: 2, NetselectionMode: 0, ConnectMode: 1, PdpType: 3, IdleTime: 600, RoamingConnect: 0 };
-  assert.ok(validateMobileSettings(good).valid, "режим «только 3G» допустим: прошивка его поддерживает");
+  const good = { NetworkMode: 3, NetselectionMode: 0, ConnectMode: 1, PdpType: 3, IdleTime: 600, RoamingConnect: 0 };
+  assert.ok(validateMobileSettings(good).valid);
 
+  // Живая проба 31.08.2026: прошивка отвергает «только 2G» и «только 3G» кодом
+  // 040701, поэтому панель предлагает те же режимы, что и штатный интерфейс.
+  assert.equal(validateMobileSettings({ ...good, NetworkMode: 1 }).errors.NetworkMode, "invalid_value");
+  assert.equal(validateMobileSettings({ ...good, NetworkMode: 2 }).errors.NetworkMode, "invalid_value");
   assert.equal(validateMobileSettings({ ...good, NetworkMode: 7 }).errors.NetworkMode, "invalid_value");
   assert.equal(validateMobileSettings({ ...good, PdpType: 1 }).errors.PdpType, "invalid_value");
   assert.equal(validateMobileSettings({ ...good, IdleTime: -1 }).errors.IdleTime, "idle_range");
@@ -523,7 +527,13 @@ await test("параметры мобильной сети проверяютс�
   const payloads = buildMobilePayloads(good);
   assert.deepEqual(Object.keys(payloads.network).sort(), ["NetselectionMode", "NetworkMode"]);
   assert.deepEqual(Object.keys(payloads.connection).sort(), ["ConnectMode", "IdleTime", "PdpType", "RoamingConnect"]);
-  assert.equal(payloads.network.NetworkMode, 2);
+  assert.equal(payloads.network.NetworkMode, 3);
+
+  // Запись без NetworkBand сбрасывает его на роутере (0 → 255), поэтому прочитанное
+  // значение уходит вместе с настройками — но только когда прошивка его прислала.
+  const withBand = buildMobilePayloads({ ...good, NetworkBand: 0 });
+  assert.deepEqual(Object.keys(withBand.network).sort(), ["NetselectionMode", "NetworkBand", "NetworkMode"]);
+  assert.equal(withBand.network.NetworkBand, 0);
 });
 
 await test("опасные параметры мобильной сети защищены", () => {

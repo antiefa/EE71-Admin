@@ -955,7 +955,7 @@
   // Мобильная сеть
 
   function networkModeLabel(value) {
-    const names = { 0: "networkModeAuto", 1: "networkMode2g", 2: "networkMode3g", 3: "networkMode4g" };
+    const names = { 0: "networkModeAuto", 3: "networkMode4g" };
     return t(names[value] || "noData");
   }
 
@@ -1139,10 +1139,11 @@
     dom.mobileSave.disabled = true;
     setStatus(dom.mobileStatus, "savingSettings", "working");
     try {
-      const payloads = buildMobilePayloads(values);
+      // Прочитанные настройки подмешиваются ради полей, которых нет в форме (NetworkBand).
+      const payloads = buildMobilePayloads({ ...mobileSettings, ...values });
       await client.setNetworkSettings(payloads.network);
       await client.setConnectionSettings(payloads.connection);
-      mobileSettings = { ...values };
+      mobileSettings = { ...mobileSettings, ...values };
       captureFormSnapshot("mobile");
       lockAllProtectedFields();
       setPlainStatus(dom.mobileStatus, t("mobileSaved"), "success");

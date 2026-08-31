@@ -378,9 +378,11 @@
     return payload;
   }
 
-  // Значения режимов мобильной сети из веб-интерфейса роутера.
-  // Прошивка поддерживает 2G и 3G, но интерфейс EE71 показывает только «авто» и 4G.
-  const NETWORK_MODES = Object.freeze([0, 1, 2, 3]);
+  // Значения режимов мобильной сети. Веб-сборки перечисляют и 1 («только 2G»),
+  // и 2 («только 3G»), но живая проба 31.08.2026 показала: прошивка EE71_E1_02.00_38
+  // отвергает оба кодом 040701 в любом состоянии соединения. Панель предлагает
+  // те же режимы, что и штатный интерфейс.
+  const NETWORK_MODES = Object.freeze([0, 3]);
   const PDP_TYPES = Object.freeze([0, 2, 3]);
   const IDLE_TIME_MAX = 7200;
 
@@ -409,11 +411,19 @@
   // Роутер принимает настройки сети и подключения разными методами.
   function buildMobilePayloads(values) {
     const source = values || {};
+    const network = {
+      NetworkMode: Number(source.NetworkMode),
+      NetselectionMode: Number(source.NetselectionMode)
+    };
+    // Запись без поля NetworkBand сбрасывает его на роутере (наблюдалось 0 → 255),
+    // поэтому прочитанное значение возвращается вместе с остальными, как это делает
+    // штатный интерфейс. Если прошивка поля не прислала, ничего не досылается.
+    const band = Number(source.NetworkBand);
+    if (Number.isFinite(band)) {
+      network.NetworkBand = band;
+    }
     return {
-      network: {
-        NetworkMode: Number(source.NetworkMode),
-        NetselectionMode: Number(source.NetselectionMode)
-      },
+      network,
       connection: {
         ConnectMode: Number(source.ConnectMode),
         RoamingConnect: Number(source.RoamingConnect) === 1 ? 1 : 0,

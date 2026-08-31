@@ -4,7 +4,7 @@
 
 An unofficial browser extension that exposes the settings of the **Alcatel EE71** mobile router (also sold as 4GEE WIFI MINI), including those its stock web interface hides. All data is read from and written to the router directly over the local network and is never sent to any external service.
 
-Current version is `0.1.0`, Chrome build only. Fourteen settings sections plus an About page, 103 router methods. Other browsers will be added once the panel has been exercised on Chrome.
+Current version is `0.1.1`, Chrome build only. Fourteen settings sections plus an About page, 103 router methods. Other browsers will be added once the panel has been exercised on Chrome.
 
 ## ⚠️ Everything you do here is at your own risk
 
@@ -51,7 +51,7 @@ The screenshots were taken against a stub router: every value on them is made up
 
 - sign-in with the router web interface account;
 - status overview: battery, mobile network and its type, signal strength, connection, Wi‑Fi client count, roaming;
-- **Mobile network**: current connection summary, connect and disconnect, allowed network generations (including the 2G-only and 3G-only modes hidden in the stock interface), operator selection, data roaming, IP protocol version and idle disconnect;
+- **Mobile network**: current connection summary, connect and disconnect, allowed network generations — automatic or 4G only (the firmware rejects forcing 2G-only and 3G-only), operator selection, data roaming, IP protocol version and idle disconnect;
 - **Traffic**: used volume with a plan progress bar, two donut charts for the current session (home network and roaming), roaming usage, connected time in words and hours, the next billing date; monthly plan setup (volume and unit, start day), auto-disconnect on reaching the limit, connection time limit and protected counter reset;
 - **Filters**: MAC device filter with a picker of connected clients, website filter, filter by address, port and protocol, UPnP switch — with a warning that an allow list can cut you off from the router;
 - **Ports and security**: router response to ping from the internet, port forwarding rules "external port → device and its port" with a picker of connected clients, DMZ and remote router access — the dangerous parts are locked and confirmed, and the section opens with a warning that these settings expose the device to the internet;
